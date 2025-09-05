@@ -24,7 +24,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    // Check if Firebase auth is available
+    if (!auth) {
+      console.warn("Firebase auth not available. Running in demo mode.");
+      setLoading(false);
+      return;
+    }
+
+    const unsubscribe = auth.onAuthStateChanged((user: User | null) => {
       setUser(user);
       setLoading(false);
     });
@@ -33,6 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!auth) {
+      console.warn("Firebase auth not available. Cannot sign in.");
+      return;
+    }
+
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
@@ -42,6 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOutUser = async () => {
+    if (!auth) {
+      console.warn("Firebase auth not available. Cannot sign out.");
+      return;
+    }
+
     try {
       await firebaseSignOut(auth);
     } catch (error) {

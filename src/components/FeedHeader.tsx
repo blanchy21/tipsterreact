@@ -7,9 +7,10 @@ interface FeedHeaderProps {
   isLoaded: boolean;
   query: string;
   onQueryChange: (query: string) => void;
+  selected?: string;
 }
 
-export default function FeedHeader({ isLoaded, query, onQueryChange }: FeedHeaderProps) {
+export default function FeedHeader({ isLoaded, query, onQueryChange, selected }: FeedHeaderProps) {
   return (
     <div className={[
         "flex items-center justify-between px-4 md:px-6 py-4 md:py-6",
@@ -24,10 +25,13 @@ export default function FeedHeader({ isLoaded, query, onQueryChange }: FeedHeade
         ].join(' ')}
       >
         <h1 className="text-xl md:text-2xl lg:text-3xl font-semibold tracking-tight text-slate-100">
-          Sports Discussion
+          {selected === 'top-articles' ? 'Top Articles' : 'Sports Discussion'}
         </h1>
         <span className="text-xs text-slate-400 hidden sm:inline">
-          Share your sports insights and analysis
+          {selected === 'top-articles' 
+            ? 'Most viewed articles on the platform' 
+            : 'Share your sports insights and analysis'
+          }
         </span>
       </div>
       <div className={[

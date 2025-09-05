@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { PlusCircle, X, ChevronDown, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { PlusCircle, X, ChevronDown, Send, Bold, Italic, Underline } from 'lucide-react';
 import { Post } from '@/lib/types';
 
 interface PostModalProps {
@@ -43,6 +43,10 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
   const [content, setContent] = useState('');
   const [tags, setTags] = useState('');
   const [showSportDropdown, setShowSportDropdown] = useState(false);
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const [isUnderline, setIsUnderline] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -51,8 +55,30 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
       setTitle('');
       setContent('');
       setTags('');
+      setIsBold(false);
+      setIsItalic(false);
+      setIsUnderline(false);
     }
   }, [open, selectedSport]);
+
+  const handleFormat = (command: string) => {
+    document.execCommand(command, false);
+    contentRef.current?.focus();
+    updateFormattingState();
+  };
+
+  const updateFormattingState = () => {
+    setIsBold(document.queryCommandState('bold'));
+    setIsItalic(document.queryCommandState('italic'));
+    setIsUnderline(document.queryCommandState('underline'));
+  };
+
+  const handleContentChange = () => {
+    if (contentRef.current) {
+      const htmlContent = contentRef.current.innerHTML;
+      setContent(htmlContent);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +104,7 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
         className="fixed inset-0 bg-black/60 backdrop-blur-sm" 
         onClick={onClose}
       />
-      <div className="relative w-full max-w-2xl bg-slate-900/95 border border-white/20 rounded-2xl shadow-2xl">
+      <div className="relative w-full max-w-4xl bg-slate-900/95 border border-white/20 rounded-2xl shadow-2xl">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-sky-500/20 flex items-center justify-center">
@@ -97,7 +123,7 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-200 mb-2">
@@ -150,13 +176,52 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
               <label className="block text-sm font-medium text-slate-200 mb-2">
                 Content
               </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Share your thoughts, insights, or questions..."
-                rows={6}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/20 outline-none text-slate-200 placeholder:text-slate-500 resize-none"
-                required
+              
+              {/* Formatting Toolbar */}
+              <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/10 rounded-t-lg border-b-0">
+                <button
+                  type="button"
+                  onClick={() => handleFormat('bold')}
+                  className={`p-2 rounded hover:bg-white/10 transition-colors ${
+                    isBold ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400'
+                  }`}
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFormat('italic')}
+                  className={`p-2 rounded hover:bg-white/10 transition-colors ${
+                    isItalic ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400'
+                  }`}
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFormat('underline')}
+                  className={`p-2 rounded hover:bg-white/10 transition-colors ${
+                    isUnderline ? 'bg-sky-500/20 text-sky-400' : 'text-slate-400'
+                  }`}
+                  title="Underline"
+                >
+                  <Underline className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Rich Text Editor */}
+              <div
+                ref={contentRef}
+                contentEditable
+                onInput={handleContentChange}
+                onKeyUp={updateFormattingState}
+                onMouseUp={updateFormattingState}
+                className="w-full min-h-[300px] px-4 py-3 bg-white/5 border border-white/10 rounded-b-lg focus:border-sky-500/50 focus:ring-2 focus:ring-sky-500/20 outline-none text-slate-200 resize-none overflow-y-auto empty:before:content-[attr(data-placeholder)] empty:before:text-slate-500 empty:before:pointer-events-none"
+                style={{ minHeight: '300px' }}
+                data-placeholder="Share your thoughts, insights, or questions..."
+                suppressContentEditableWarning={true}
               />
             </div>
 

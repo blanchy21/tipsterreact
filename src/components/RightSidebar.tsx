@@ -1,16 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Fixture, FollowingUser, TrendingItem } from '@/lib/types';
+import { Fixture, FollowingUser, Post } from '@/lib/types';
 import FixturesCard from './FixturesCard';
 import FollowingCard from './FollowingCard';
-import TrendingCard from './TrendingCard';
+import TopArticlesCard from './TopArticlesCard';
 
 interface RightSidebarProps {
   fixtures: Fixture[];
   following: FollowingUser[];
   onToggleFollow: (id: string) => void;
-  trending: TrendingItem[];
+  posts: Post[];
   isLoaded: boolean;
 }
 
@@ -18,7 +18,7 @@ export default function RightSidebar({
   fixtures, 
   following, 
   onToggleFollow, 
-  trending, 
+  posts, 
   isLoaded 
 }: RightSidebarProps) {
   return (
@@ -26,7 +26,7 @@ export default function RightSidebar({
         "hidden lg:flex lg:flex-col shrink-0",
         "px-4 py-4",
         "border-l border-white/5",
-        "gap-4",
+        "gap-6",
         "h-screen overflow-y-auto",
         "transition duration-700",
         isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
@@ -35,7 +35,7 @@ export default function RightSidebar({
     >
       <FixturesCard fixtures={fixtures} />
       <FollowingCard list={following} onToggle={onToggleFollow} />
-      <TrendingCard items={trending} />
+      <TopArticlesCard articles={posts} />
     </aside>
   );
 }

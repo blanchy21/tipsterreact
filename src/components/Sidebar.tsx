@@ -9,7 +9,8 @@ import {
   Mail, 
   User, 
   Star, 
-  PlusCircle 
+  PlusCircle,
+  ExternalLink
 } from 'lucide-react';
 import Logo from './Logo';
 import SidebarItem from './SidebarItem';
@@ -24,19 +25,20 @@ interface SidebarProps {
   isLoaded: boolean;
   selectedSport: string;
   onSportSelect: (sport: string) => void;
+  onShowLandingPage?: () => void;
 }
 
 const items: SidebarItemType[] = [
   { icon: Home, label: 'Home', key: 'home' },
   { icon: Bell, label: 'Notifications', key: 'notifications' },
-  { icon: Star, label: 'Top Analysts', key: 'sport' },
+  { icon: Star, label: 'Top Articles', key: 'top-articles' },
   { icon: MessageCircle, label: 'Chat', key: 'chat' },
   { icon: Mail, label: 'Messages', key: 'messages' },
   { icon: User, label: 'Profile', key: 'profile' },
   { icon: Trophy, label: 'Sport', key: 'top' },
 ];
 
-export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect }: SidebarProps) {
+export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect, onShowLandingPage }: SidebarProps) {
   const [showSportsSubmenu, setShowSportsSubmenu] = useState(false);
   const submenuRef = useRef<HTMLDivElement>(null);
   const { unreadCount } = useNotifications();
@@ -110,7 +112,7 @@ export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, sele
         ))}
       </nav>
 
-      <div className="mt-3 pt-3 border-t border-white/5">
+      <div className="mt-3 pt-3 border-t border-white/5 space-y-2">
         <button
           onClick={onOpenPost}
           className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 hover:text-sky-200 transition ring-1 ring-inset ring-sky-500/30 hover:ring-sky-500/40"
@@ -119,6 +121,17 @@ export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, sele
           <PlusCircle className="w-5 h-5" />
           <span className="font-medium">Share Insight</span>
         </button>
+        
+        {onShowLandingPage && (
+          <button
+            onClick={onShowLandingPage}
+            className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-emerald-500/20 to-blue-500/20 text-emerald-300 hover:from-emerald-500/30 hover:to-blue-500/30 hover:text-emerald-200 transition ring-1 ring-inset ring-emerald-500/30 hover:ring-emerald-500/40"
+            title="View Landing Page"
+          >
+            <ExternalLink className="w-5 h-5" />
+            <span className="font-medium">About Sports Arena</span>
+          </button>
+        )}
       </div>
     </aside>
   );

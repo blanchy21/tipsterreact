@@ -12,9 +12,12 @@ import ProfilePage from './ProfilePage';
 import MessagesPage from './MessagesPage';
 import ChatPage from './ChatPage';
 import NotificationsPage from './NotificationsPage';
+import LandingPage from './LandingPage';
 import { NotificationsProvider } from '@/lib/contexts/NotificationsContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export default function App() {
+  const { user } = useAuth();
   const [selected, setSelected] = useState('home');
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [following, setFollowing] = useState<FollowingUser[]>(sampleFollowing);
@@ -22,15 +25,22 @@ export default function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedSport, setSelectedSport] = useState('All Sports');
+  const [showLandingPage, setShowLandingPage] = useState(false);
 
   useEffect(() => {
+    // Check if user has seen landing page
+    const hasSeenLandingPage = localStorage.getItem('hasSeenLandingPage');
+    if (!hasSeenLandingPage && !user) {
+      setShowLandingPage(true);
+    }
+
     // Load entrance state
     const timer = setTimeout(() => {
       setIsLoaded(true);
       document.body.classList.add('loaded');
     }, 50);
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]);
 
   const filteredPosts = useMemo(() => {
     let filtered = posts;
@@ -38,6 +48,9 @@ export default function App() {
     // Filter by selected tab
     if (selected === 'top') {
       filtered = filtered.filter(post => post.likes >= 20);
+    } else if (selected === 'top-articles') {
+      // Sort by views in descending order for top articles
+      filtered = filtered.sort((a, b) => b.views - a.views);
     }
     
     // Filter by selected sport
@@ -93,6 +106,21 @@ export default function App() {
     setSelected('top');
   };
 
+  const handleGetStarted = () => {
+    localStorage.setItem('hasSeenLandingPage', 'true');
+    setShowLandingPage(false);
+    // If user is not authenticated, you might want to show sign in modal here
+  };
+
+  const handleShowLandingPage = () => {
+    setShowLandingPage(true);
+  };
+
+  // Show landing page for new users
+  if (showLandingPage) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
   return (
     <NotificationsProvider>
       <div className="h-screen flex flex-col overflow-hidden">
@@ -109,6 +137,7 @@ export default function App() {
             isLoaded={isLoaded}
             selectedSport={selectedSport}
             onSportSelect={handleSportSelect}
+            onShowLandingPage={handleShowLandingPage}
           />
 
           {selected === 'profile' ? (
@@ -135,13 +164,14 @@ export default function App() {
                 query={query}
                 onQueryChange={setQuery}
                 selectedSport={selectedSport}
+                selected={selected}
               />
 
               <RightSidebar
                 fixtures={sampleFixtures}
                 following={following}
                 onToggleFollow={toggleFollow}
-                trending={sampleTrending}
+                posts={posts}
                 isLoaded={isLoaded}
               />
             </>

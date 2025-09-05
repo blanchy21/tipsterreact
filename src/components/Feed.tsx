@@ -12,12 +12,13 @@ interface FeedProps {
   query: string;
   onQueryChange: (query: string) => void;
   selectedSport?: string;
+  selected?: string;
 }
 
-export default function Feed({ posts, isLoaded, query, onQueryChange, selectedSport }: FeedProps) {
+export default function Feed({ posts, isLoaded, query, onQueryChange, selectedSport, selected }: FeedProps) {
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
-      <FeedHeader isLoaded={isLoaded} query={query} onQueryChange={onQueryChange} />
+      <FeedHeader isLoaded={isLoaded} query={query} onQueryChange={onQueryChange} selected={selected} />
       <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 md:space-y-5">
         {posts.map((post, idx) => (
           <div 

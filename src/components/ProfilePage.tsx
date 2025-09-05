@@ -75,16 +75,16 @@ const ProfilePage: React.FC = () => {
   const achievements: Achievement[] = [
     {
       id: '1',
-      title: 'Sports Analyst Champion',
-      description: '1st Place - Premier League Analysis Competition 2024',
+      title: 'Sports Analysis Expert',
+      description: 'Premier League Analysis Competition Winner 2024',
       icon: <Trophy className="w-4 h-4" />,
       color: 'amber',
       date: '2024'
     },
     {
       id: '2',
-      title: 'Elite Sports Expert',
-      description: 'Verified Expert Status - 75%+ Engagement Rate',
+      title: 'Elite Sports Analyst',
+      description: 'Verified Expert Status - High Engagement Rate',
       icon: <Award className="w-4 h-4" />,
       color: 'emerald',
       date: '2024'
@@ -92,7 +92,7 @@ const ProfilePage: React.FC = () => {
     {
       id: '3',
       title: 'Community Leader',
-      description: '2,500+ Followers - Top 1% of Sports Analysts',
+      description: '2,500+ Followers - Top Sports Discussion Contributor',
       icon: <Users className="w-4 h-4" />,
       color: 'indigo',
       date: '2024'
@@ -223,8 +223,8 @@ const ProfilePage: React.FC = () => {
                     <div className="text-xs text-neutral-400">Engagement</div>
                   </div>
                   <div className="text-center hover:scale-110 transition-transform duration-300">
-                    <div className="text-xl font-bold text-white">{stats.streak}</div>
-                    <div className="text-xs text-neutral-400">Streak</div>
+                    <div className="text-xl font-bold text-white">{stats.totalComments}</div>
+                    <div className="text-xs text-neutral-400">Comments</div>
                   </div>
                 </div>
 
@@ -378,11 +378,14 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 hover:scale-105 transition-all duration-300 backdrop-blur-md">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-blue-500/20 rounded-xl">
+                  <div className="flex items-start gap-1 mb-3">
+                    <div className="p-2 bg-blue-500/20 rounded-xl flex-shrink-0">
                       <Award className="w-5 h-5 text-blue-400" />
                     </div>
-                    <span className="font-semibold text-blue-400">Total Comments</span>
+                    <div className="flex flex-col flex-1">
+                      <span className="font-semibold text-blue-400">Total</span>
+                      <span className="font-semibold text-blue-400">Comments</span>
+                    </div>
                   </div>
                   <div className="text-3xl font-bold text-white mb-1">{stats.totalComments.toLocaleString()}</div>
                   <div className="text-sm text-blue-300">Comments Received</div>
@@ -399,8 +402,8 @@ const ProfilePage: React.FC = () => {
                   <div className="text-xs text-neutral-400">Following</div>
                 </div>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{stats.streak}</div>
-                  <div className="text-xs text-neutral-400">Win Streak</div>
+                  <div className="text-2xl font-bold text-white mb-1">{stats.engagementRate}%</div>
+                  <div className="text-xs text-neutral-400">Engagement</div>
                 </div>
               </div>
             </article>
@@ -429,7 +432,7 @@ const ProfilePage: React.FC = () => {
                     <div className="flex-1">
                       <div className="font-semibold text-white">{sport}</div>
                       <div className="text-sm text-emerald-400 mb-1">Expert Level</div>
-                      <div className="text-xs text-neutral-400">85%+ Win Rate</div>
+                      <div className="text-xs text-neutral-400">Professional Analysis</div>
                     </div>
                   </div>
                 ))}
