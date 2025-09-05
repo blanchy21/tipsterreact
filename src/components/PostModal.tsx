@@ -7,7 +7,7 @@ import { Post } from '@/lib/types';
 interface PostModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (post: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views'>) => void;
+  onSubmit: (post: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views' | 'likedBy'>) => void;
   selectedSport?: string;
 }
 

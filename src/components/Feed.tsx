@@ -13,9 +13,10 @@ interface FeedProps {
   onQueryChange: (query: string) => void;
   selectedSport?: string;
   selected?: string;
+  onLikeChange: (postId: string, newLikes: number, newLikedBy: string[]) => void;
 }
 
-export default function Feed({ posts, isLoaded, query, onQueryChange, selectedSport, selected }: FeedProps) {
+export default function Feed({ posts, isLoaded, query, onQueryChange, selectedSport, selected, onLikeChange }: FeedProps) {
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
       <FeedHeader isLoaded={isLoaded} query={query} onQueryChange={onQueryChange} selected={selected} />
@@ -29,7 +30,7 @@ export default function Feed({ posts, isLoaded, query, onQueryChange, selectedSp
               `delay-[${Math.min(idx * 60, 400)}ms]`
             ].join(' ')}
           >
-            <PostCard post={post} />
+            <PostCard post={post} onLikeChange={onLikeChange} />
           </div>
         ))}
         {posts.length === 0 && (

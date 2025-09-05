@@ -185,7 +185,7 @@ export default function ChatPage() {
             onClick={() => setInputMessage("What are today's best sports predictions?")}
             className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-full text-xs text-slate-300 whitespace-nowrap transition-colors"
           >
-            📊 Today's Predictions
+            📊 Today&apos;s Predictions
           </button>
         </div>
       </div>

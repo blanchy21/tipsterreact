@@ -35,7 +35,8 @@ export const initialPosts = [
     createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     likes: 45,
     comments: 12,
-    views: 1234
+    views: 1234,
+    likedBy: ['user-alex-morgan', 'user-jordan-lee']
   },
   {
     id: 'p2',
@@ -52,7 +53,8 @@ export const initialPosts = [
     createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
     likes: 38,
     comments: 8,
-    views: 892
+    views: 892,
+    likedBy: ['user-alex-morgan']
   },
   {
     id: 'p3',
@@ -69,7 +71,8 @@ export const initialPosts = [
     createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
     likes: 52,
     comments: 15,
-    views: 2156
+    views: 2156,
+    likedBy: ['user-jordan-lee', 'user-maria-silva']
   },
   {
     id: 'p4',
@@ -86,7 +89,8 @@ export const initialPosts = [
     createdAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
     likes: 78,
     comments: 23,
-    views: 3456
+    views: 3456,
+    likedBy: ['user-alex-morgan', 'user-samir-khan', 'user-david-kim']
   },
   {
     id: 'p5',
@@ -103,7 +107,8 @@ export const initialPosts = [
     createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
     likes: 95,
     comments: 31,
-    views: 2789
+    views: 2789,
+    likedBy: ['user-alex-morgan', 'user-jordan-lee', 'user-maria-silva']
   }
 ];
 

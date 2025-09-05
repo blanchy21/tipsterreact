@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { 
   Star, 
   MapPin, 
@@ -31,6 +32,8 @@ import {
   ExternalLink,
   UserPlus
 } from 'lucide-react';
+import FollowButton from './FollowButton';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 interface ProfileStats {
   totalPosts: number;
@@ -62,11 +65,25 @@ interface RecentPost {
 }
 
 const ProfilePage: React.FC = () => {
+  const { user: currentUser } = useAuth();
+  
+  // Mock profile user data - in a real app, this would come from props or API
+  const profileUser = {
+    id: 'profile-user-123',
+    name: 'Alex Thompson',
+    handle: '@alexthompson',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80',
+    followers: ['user1', 'user2', 'user3'],
+    following: ['user4', 'user5'],
+    followersCount: 2840,
+    followingCount: 156
+  };
+
   const stats: ProfileStats = {
     totalPosts: 1247,
     engagementRate: 78,
-    followers: 2840,
-    following: 156,
+    followers: profileUser.followersCount || 2840,
+    following: profileUser.followingCount || 156,
     totalLikes: 9720,
     totalComments: 2750,
     streak: 12
@@ -151,16 +168,18 @@ const ProfilePage: React.FC = () => {
             {/* PROFILE */}
             <article className="rounded-3xl shadow-2xl overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 hover:border-white/20 transition-all duration-500 group hover:scale-[1.02] hover:shadow-3xl">
               <div className="grid grid-cols-2 h-48 relative overflow-hidden">
-                <img 
+                <Image 
                   src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" 
                   alt="football stadium" 
-                  className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-110" 
                 />
                 <div className="relative overflow-hidden">
-                  <img 
+                  <Image 
                     src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80" 
                     alt="basketball court" 
-                    className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110" 
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-transparent">
                     <div className="bg-white/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-150 border border-white/20">
@@ -172,10 +191,12 @@ const ProfilePage: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
               </div>
               <div className="relative pt-16 pr-8 pb-8 pl-8 backdrop-blur-2xl">
-                <img 
+                <Image 
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80" 
                   alt="profile" 
-                  className="w-24 h-24 absolute -top-12 left-8 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2 object-cover border-white/20 border-4 rounded-3xl shadow-2xl"
+                  width={96}
+                  height={96}
+                  className="absolute -top-12 left-8 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2 object-cover border-white/20 border-4 rounded-3xl shadow-2xl"
                 />
                 <span className="absolute -top-6 left-28 rounded-full p-2 bg-emerald-400 shadow-lg ring-4 ring-emerald-400/20 transition-all duration-500 group-hover:ring-8 group-hover:ring-emerald-400/40" aria-label="verified">
                   <Check className="w-3 h-3 text-black transition-transform duration-300 group-hover:scale-125" style={{strokeWidth: 2.5}} />
@@ -250,10 +271,11 @@ const ProfilePage: React.FC = () => {
                     <Phone className="w-4 h-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
                     Contact
                   </button>
-                  <a href="#" className="flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl py-3 px-4 text-white hover:from-indigo-600 hover:to-purple-600 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-indigo-500/25 group backdrop-blur-sm" aria-label="follow">
-                    <Users className="w-4 h-4 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300" />
-                    Follow
-                  </a>
+                  <FollowButton 
+                    targetUser={profileUser} 
+                    variant="default"
+                    className="w-full"
+                  />
                 </div>
               </div>
             </article>
@@ -335,7 +357,7 @@ const ProfilePage: React.FC = () => {
                 <div className="flex items-center justify-between opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.6s forwards'}}>
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80" alt="profile" className="w-12 h-12 rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
+                      <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80" alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-indigo-600 animate-pulse"></div>
                     </div>
                     <div>
@@ -394,11 +416,11 @@ const ProfilePage: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-4 mb-6 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 2s forwards'}}>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{stats.followers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-white mb-1">{profileUser.followersCount?.toLocaleString() || stats.followers.toLocaleString()}</div>
                   <div className="text-xs text-neutral-400">Followers</div>
                 </div>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{stats.following}</div>
+                  <div className="text-2xl font-bold text-white mb-1">{profileUser.followingCount || stats.following}</div>
                   <div className="text-xs text-neutral-400">Following</div>
                 </div>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">

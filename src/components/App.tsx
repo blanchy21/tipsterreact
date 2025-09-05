@@ -74,7 +74,7 @@ export default function App() {
     return filtered;
   }, [posts, selected, selectedSport, query]);
 
-  const handleSubmitPost = (postData: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views'>) => {
+  const handleSubmitPost = (postData: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views' | 'likedBy'>) => {
     const newPost: Post = {
       id: 'p' + Math.random().toString(36).slice(2),
       user: { 
@@ -87,10 +87,21 @@ export default function App() {
       createdAt: new Date().toISOString(),
       likes: 0,
       comments: 0,
-      views: 0
+      views: 0,
+      likedBy: []
     };
     
     setPosts((prev: Post[]) => [newPost, ...prev]);
+  };
+
+  const handleLikeChange = (postId: string, newLikes: number, newLikedBy: string[]) => {
+    setPosts((prev: Post[]) => 
+      prev.map((post: Post) => 
+        post.id === postId 
+          ? { ...post, likes: newLikes, likedBy: newLikedBy }
+          : post
+      )
+    );
   };
 
   const toggleFollow = (id: string) => {
@@ -165,6 +176,7 @@ export default function App() {
                 onQueryChange={setQuery}
                 selectedSport={selectedSport}
                 selected={selected}
+                onLikeChange={handleLikeChange}
               />
 
               <RightSidebar

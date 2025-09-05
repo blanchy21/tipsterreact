@@ -1,22 +1,28 @@
 'use client';
 
 import React from 'react';
-import { MoreHorizontal, ThumbsUp, MessageCircle, Eye, Hash } from 'lucide-react';
+import Image from 'next/image';
+import { MoreHorizontal, MessageCircle, Eye, Hash } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { timeAgo } from '@/lib/utils';
+import LikeButton from './LikeButton';
+import FollowButton from './FollowButton';
 
 interface PostCardProps {
   post: Post;
+  onLikeChange: (postId: string, newLikes: number, newLikedBy: string[]) => void;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onLikeChange }: PostCardProps) {
   return (
     <article className="group rounded-xl bg-white/[0.03] hover:bg-white/[0.05] transition ring-1 ring-white/5 hover:ring-white/10 p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <img 
+        <Image 
           src={post.user.avatar} 
           alt={post.user.name} 
-          className="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" 
+          width={40}
+          height={40}
+          className="rounded-full object-cover ring-1 ring-white/10" 
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
@@ -30,6 +36,7 @@ export default function PostCard({ post }: PostCardProps) {
               <span className="text-xs text-sky-300/90 bg-sky-500/10 ring-1 ring-sky-500/20 px-2 py-1 rounded-md">
                 {post.sport}
               </span>
+              <FollowButton targetUser={post.user} variant="minimal" />
               <button className="p-2 rounded-md hover:bg-white/5 transition ring-1 ring-transparent hover:ring-white/10">
                 <MoreHorizontal className="w-4 h-4 text-slate-400" />
               </button>
@@ -61,10 +68,7 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
 
           <div className="mt-4 flex items-center gap-4">
-            <button className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition rounded-md px-2 py-1.5 hover:bg-white/5 ring-1 ring-transparent hover:ring-white/10">
-              <ThumbsUp className="w-4 h-4" />
-              <span className="text-sm">{post.likes}</span>
-            </button>
+            <LikeButton post={post} onLikeChange={onLikeChange} />
             <button className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition rounded-md px-2 py-1.5 hover:bg-white/5 ring-1 ring-transparent hover:ring-white/10">
               <MessageCircle className="w-4 h-4" />
               <span className="text-sm">{post.comments}</span>

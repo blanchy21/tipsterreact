@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 interface LandingPageProps {
@@ -242,10 +243,13 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
           {/* Hero Image */}
           <div className="relative max-w-6xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden shadow-[0_30px_120px_-20px_rgba(139,92,246,0.45)]">
-              <img 
+              <Image 
                 src="/hero.png" 
                 alt="Sports Arena - Your Safe Space for Sports Discussion"
+                width={1200}
+                height={600}
                 className="w-full h-auto object-cover"
+                priority
               />
               {/* Optional overlay for better text readability if needed */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
@@ -263,15 +267,15 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             </h2>
             <div className="max-w-3xl mx-auto">
               <p className="text-lg text-white/70 leading-relaxed mb-8">
-                "We were tired of the constant political noise. X became too political and right-wing, 
-                Bluesky was very left-wing. We said, 'Why the hell do we have to deal with this?' 
-                Let's create a sports-only social media and cut out all the rest."
+                &ldquo;We were tired of the constant political noise. X became too political and right-wing, 
+                Bluesky was very left-wing. We said, &apos;Why the hell do we have to deal with this?&apos; 
+                Let&apos;s create a sports-only social media and cut out all the rest.&rdquo;
               </p>
               <div className="bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-2xl p-8 border border-violet-500/20">
                 <p className="text-white/80 text-lg italic">
-                  "Sports should be our escape from the chaos of politics, religion, and social issues. 
+                  &ldquo;Sports should be our escape from the chaos of politics, religion, and social issues. 
                   We wanted to create a place where fans could just talk about the games they love 
-                  without being bombarded with divisive content."
+                  without being bombarded with divisive content.&rdquo;
                 </p>
                 <div className="mt-6 flex items-center justify-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center">
@@ -331,7 +335,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
                 More Sports <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">Coming Soon</span>
               </h3>
               <p className="text-white/70 mb-6 max-w-2xl mx-auto">
-                We're constantly expanding our coverage. Here are some sports we're working to add:
+                We&apos;re constantly expanding our coverage. Here are some sports we&apos;re working to add:
               </p>
               <div className="flex flex-wrap justify-center gap-3">
                 {[
@@ -351,7 +355,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               </div>
               <div className="mt-6">
                 <p className="text-white/60 text-sm">
-                  Don't see your sport? <span className="text-violet-400 font-medium">Let us know</span> and we'll prioritize adding it!
+                  Don&apos;t see your sport? <span className="text-violet-400 font-medium">Let us know</span> and we&apos;ll prioritize adding it!
                 </p>
               </div>
             </div>
@@ -403,7 +407,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               Covering <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">50+ Sports</span>
             </h2>
             <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              From football to tennis, basketball to cricket - we've got every sport covered with live updates and expert analysis.
+              From football to tennis, basketball to cricket - we&apos;ve got every sport covered with live updates and expert analysis.
             </p>
           </div>
 

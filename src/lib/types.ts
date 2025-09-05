@@ -3,6 +3,10 @@ export interface User {
   name: string;
   handle: string;
   avatar: string;
+  followers?: string[]; // Array of user IDs who follow this user
+  following?: string[]; // Array of user IDs this user follows
+  followersCount?: number;
+  followingCount?: number;
 }
 
 export interface Post {
@@ -16,6 +20,7 @@ export interface Post {
   likes: number;
   comments: number;
   views: number;
+  likedBy: string[]; // Array of user IDs who liked this post
 }
 
 export interface Fixture {

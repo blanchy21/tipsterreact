@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Conversation, Message, User } from '@/lib/types';
-import { ArrowLeft, Phone, Video, MoreVertical, Send, Image, Smile } from 'lucide-react';
+import { ArrowLeft, Phone, Video, MoreVertical, Send, Image as ImageIcon, Smile } from 'lucide-react';
 
 interface ChatWindowProps {
   conversation: Conversation | null;
@@ -74,10 +75,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <ArrowLeft className="w-5 h-5 text-neutral-400" />
           </button>
           
-          <img
-            src={otherParticipant?.avatar}
+          <Image
+            src={otherParticipant?.avatar || '/default-avatar.png'}
             alt={otherParticipant?.name || 'User'}
-            className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+            width={40}
+            height={40}
+            className="rounded-full object-cover border-2 border-white/20"
           />
           
           <div className="flex-1">
@@ -106,10 +109,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             {/* Sample messages - in a real app, you'd fetch these from an API */}
             <div className="flex justify-start">
               <div className="flex items-start gap-2 max-w-xs">
-                <img
-                  src={otherParticipant?.avatar}
+                <Image
+                  src={otherParticipant?.avatar || '/default-avatar.png'}
                   alt={otherParticipant?.name || 'User'}
-                  className="w-8 h-8 rounded-full object-cover border border-white/20"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-white/20"
                 />
                 <div className="bg-white/10 rounded-2xl rounded-tl-sm px-4 py-2">
                   <p className="text-white text-sm">Hey! Great analysis on the Arsenal match yesterday. What do you think about their chances in the Champions League?</p>
@@ -127,10 +132,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
             <div className="flex justify-start">
               <div className="flex items-start gap-2 max-w-xs">
-                <img
-                  src={otherParticipant?.avatar}
+                <Image
+                  src={otherParticipant?.avatar || '/default-avatar.png'}
                   alt={otherParticipant?.name || 'User'}
-                  className="w-8 h-8 rounded-full object-cover border border-white/20"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-white/20"
                 />
                 <div className="bg-white/10 rounded-2xl rounded-tl-sm px-4 py-2">
                   <p className="text-white text-sm">Absolutely! The way they&apos;re playing now is much more consistent. Do you have any insights on their upcoming fixtures?</p>
@@ -166,8 +173,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             type="button"
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Attach image"
           >
-            <Image className="w-5 h-5 text-neutral-400" />
+            <ImageIcon className="w-5 h-5 text-neutral-400" />
           </button>
           
           <div className="flex-1 relative">
