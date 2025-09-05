@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Post, FollowingUser } from '@/lib/types';
-import { initialPosts, sampleFixtures, sampleFollowing, sampleTrending } from '@/lib/utils';
+import { sampleFixtures, sampleFollowing, sampleTrending } from '@/lib/utils';
+import { getPosts, createPost, togglePostLike, incrementPostViews } from '@/lib/firebase/firebaseUtils';
 import Sidebar from './Sidebar';
 import MobileHeader from './MobileHeader';
 import Feed from './Feed';
@@ -13,24 +14,28 @@ import MessagesPage from './MessagesPage';
 import ChatPage from './ChatPage';
 import NotificationsPage from './NotificationsPage';
 import LandingPage from './LandingPage';
+import AuthModal from './AuthModal';
 import { NotificationsProvider } from '@/lib/contexts/NotificationsContext';
+import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { useAuth } from '@/lib/hooks/useAuth';
 
-export default function App() {
-  const { user } = useAuth();
+function AppContent() {
+  const { user, loading } = useAuth();
   const [selected, setSelected] = useState('home');
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [following, setFollowing] = useState<FollowingUser[]>(sampleFollowing);
   const [showPost, setShowPost] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedSport, setSelectedSport] = useState('All Sports');
   const [showLandingPage, setShowLandingPage] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
     // Check if user has seen landing page
     const hasSeenLandingPage = localStorage.getItem('hasSeenLandingPage');
-    if (!hasSeenLandingPage && !user) {
+    if (!hasSeenLandingPage && !user && !loading) {
       setShowLandingPage(true);
     }
 
@@ -40,7 +45,24 @@ export default function App() {
       document.body.classList.add('loaded');
     }, 50);
     return () => clearTimeout(timer);
+  }, [user, loading]);
+
+  // Load posts from Firestore
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        const firestorePosts = await getPosts();
+        setPosts(firestorePosts as Post[]);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      }
+    };
+
+    if (user) {
+      loadPosts();
+    }
   }, [user]);
+
 
   const filteredPosts = useMemo(() => {
     let filtered = posts;
@@ -74,34 +96,44 @@ export default function App() {
     return filtered;
   }, [posts, selected, selectedSport, query]);
 
-  const handleSubmitPost = (postData: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views' | 'likedBy'>) => {
-    const newPost: Post = {
-      id: 'p' + Math.random().toString(36).slice(2),
-      user: { 
-        id: 'current-user',
-        name: 'You', 
-        handle: '@you', 
-        avatar: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop' 
-      },
-      ...postData,
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: 0,
-      views: 0,
-      likedBy: []
-    };
-    
-    setPosts((prev: Post[]) => [newPost, ...prev]);
+  const handleSubmitPost = async (postData: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views' | 'likedBy'>) => {
+    if (!user) return;
+
+    try {
+      const newPostData = {
+        ...postData,
+        user: { 
+          id: user.uid,
+          name: user.displayName || 'Anonymous', 
+          handle: `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`, 
+          avatar: user.photoURL || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop' 
+        }
+      };
+
+      const newPost = await createPost(newPostData);
+      setPosts((prev: Post[]) => [{ ...newPost, createdAt: newPost.createdAt.toISOString() } as Post, ...prev]);
+    } catch (error) {
+      console.error('Error creating post:', error);
+    }
   };
 
-  const handleLikeChange = (postId: string, newLikes: number, newLikedBy: string[]) => {
-    setPosts((prev: Post[]) => 
-      prev.map((post: Post) => 
-        post.id === postId 
-          ? { ...post, likes: newLikes, likedBy: newLikedBy }
-          : post
-      )
-    );
+  const handleLikeChange = async (postId: string, newLikes: number, newLikedBy: string[]) => {
+    if (!user) return;
+
+    try {
+      const isLiked = newLikedBy.includes(user.uid);
+      await togglePostLike(postId, user.uid, isLiked);
+      
+      setPosts((prev: Post[]) => 
+        prev.map((post: Post) => 
+          post.id === postId 
+            ? { ...post, likes: newLikes, likedBy: newLikedBy }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
   };
 
   const toggleFollow = (id: string) => {
@@ -120,16 +152,92 @@ export default function App() {
   const handleGetStarted = () => {
     localStorage.setItem('hasSeenLandingPage', 'true');
     setShowLandingPage(false);
-    // If user is not authenticated, you might want to show sign in modal here
+    // Show sign up modal if user is not authenticated
+    if (!user) {
+      setAuthModalMode('signup');
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleShowAuthModal = (mode: 'login' | 'signup') => {
+    setAuthModalMode(mode);
+    setShowAuthModal(true);
+  };
+
+  const handleCloseAuthModal = () => {
+    setShowAuthModal(false);
   };
 
   const handleShowLandingPage = () => {
     setShowLandingPage(true);
   };
 
-  // Show landing page for new users
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#0A0A14]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-white/70">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show landing page for new users or when explicitly requested
   if (showLandingPage) {
-    return <LandingPage onGetStarted={handleGetStarted} />;
+    return (
+      <>
+        <LandingPage onGetStarted={handleGetStarted} onShowAuthModal={handleShowAuthModal} />
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={handleCloseAuthModal}
+          initialMode={authModalMode}
+        />
+      </>
+    );
+  }
+
+  // Require authentication for the main app
+  if (!user) {
+    return (
+      <>
+        <div className="h-screen flex items-center justify-center bg-[#0A0A14]">
+          <div className="text-center max-w-md mx-auto p-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-white font-bold text-2xl">SA</span>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Welcome to Sports Arena</h1>
+            <p className="text-white/70 mb-8">Please sign in to access the sports discussion platform</p>
+            <div className="space-y-4">
+              <button
+                onClick={() => handleShowAuthModal('login')}
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all duration-200"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => handleShowAuthModal('signup')}
+                className="w-full border border-white/20 bg-white/5 text-white py-3 px-6 rounded-lg font-semibold hover:bg-white/10 transition-all duration-200"
+              >
+                Create Account
+              </button>
+              <button
+                onClick={() => setShowLandingPage(true)}
+                className="w-full text-white/60 hover:text-white transition-colors text-sm"
+              >
+                Learn More
+              </button>
+            </div>
+          </div>
+        </div>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={handleCloseAuthModal}
+          initialMode={authModalMode}
+        />
+      </>
+    );
   }
 
   return (
@@ -149,6 +257,7 @@ export default function App() {
             selectedSport={selectedSport}
             onSportSelect={handleSportSelect}
             onShowLandingPage={handleShowLandingPage}
+            onShowAuthModal={handleShowAuthModal}
           />
 
           {selected === 'profile' ? (
@@ -196,7 +305,21 @@ export default function App() {
           onSubmit={handleSubmitPost}
           selectedSport={selectedSport}
         />
+
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={handleCloseAuthModal}
+          initialMode={authModalMode}
+        />
       </div>
     </NotificationsProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

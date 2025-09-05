@@ -6,9 +6,10 @@ import { useAuth } from '@/lib/hooks/useAuth';
 
 interface LandingPageProps {
   onGetStarted: () => void;
+  onShowAuthModal?: (mode: 'login' | 'signup') => void;
 }
 
-export default function LandingPage({ onGetStarted }: LandingPageProps) {
+export default function LandingPage({ onGetStarted, onShowAuthModal }: LandingPageProps) {
   const { user } = useAuth();
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -117,9 +118,14 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             </div>
 
               <div className="flex items-center gap-2">
-                <a href="#" className="hidden sm:inline-flex items-center rounded-full px-4 py-2 text-sm text-white/80 hover:text-white transition-colors">
-                  Sign in
-                </a>
+                {onShowAuthModal && (
+                  <button 
+                    onClick={() => onShowAuthModal('login')}
+                    className="inline-flex items-center rounded-full px-4 py-2 text-sm text-white/80 hover:text-white transition-colors"
+                  >
+                    Sign in
+                  </button>
+                )}
                 <a
                   href="#"
                   onClick={onGetStarted}

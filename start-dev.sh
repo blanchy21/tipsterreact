@@ -9,4 +9,4 @@ sleep 1
 
 # Start the development server on port 3000
 echo "🚀 Starting development server on port 3000..."
-npm run dev
+PORT=3000 npm run dev

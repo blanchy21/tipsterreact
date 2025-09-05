@@ -76,7 +76,11 @@ export default function PostModal({ open, onClose, onSubmit, selectedSport }: Po
   const handleContentChange = () => {
     if (contentRef.current) {
       const htmlContent = contentRef.current.innerHTML;
-      setContent(htmlContent);
+      // Convert HTML to plain text, removing HTML entities
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlContent;
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
+      setContent(plainText);
     }
   };
 

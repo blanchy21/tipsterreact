@@ -10,13 +10,15 @@ import {
   User, 
   Star, 
   PlusCircle,
-  ExternalLink
+  ExternalLink,
+  LogOut
 } from 'lucide-react';
 import Logo from './Logo';
 import SidebarItem from './SidebarItem';
 import SportsSubmenu from './SportsSubmenu';
 import { SidebarItem as SidebarItemType } from '@/lib/types';
 import { useNotifications } from '@/lib/contexts/NotificationsContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 interface SidebarProps {
   selected: string;
@@ -26,6 +28,7 @@ interface SidebarProps {
   selectedSport: string;
   onSportSelect: (sport: string) => void;
   onShowLandingPage?: () => void;
+  onShowAuthModal?: (mode: 'login' | 'signup') => void;
 }
 
 const items: SidebarItemType[] = [
@@ -38,10 +41,11 @@ const items: SidebarItemType[] = [
   { icon: Trophy, label: 'Sport', key: 'top' },
 ];
 
-export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect, onShowLandingPage }: SidebarProps) {
+export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect, onShowLandingPage, onShowAuthModal }: SidebarProps) {
   const [showSportsSubmenu, setShowSportsSubmenu] = useState(false);
   const submenuRef = useRef<HTMLDivElement>(null);
   const { unreadCount } = useNotifications();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -132,6 +136,15 @@ export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, sele
             <span className="font-medium">About Sports Arena</span>
           </button>
         )}
+
+        <button
+          onClick={signOut}
+          className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/20 text-red-300 hover:bg-red-500/30 hover:text-red-200 transition ring-1 ring-inset ring-red-500/30 hover:ring-red-500/40"
+          title="Sign Out"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium">Sign Out</span>
+        </button>
       </div>
     </aside>
   );
