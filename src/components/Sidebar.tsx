@@ -15,6 +15,7 @@ import Logo from './Logo';
 import SidebarItem from './SidebarItem';
 import SportsSubmenu from './SportsSubmenu';
 import { SidebarItem as SidebarItemType } from '@/lib/types';
+import { useNotifications } from '@/lib/contexts/NotificationsContext';
 
 interface SidebarProps {
   selected: string;
@@ -38,6 +39,7 @@ const items: SidebarItemType[] = [
 export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect }: SidebarProps) {
   const [showSportsSubmenu, setShowSportsSubmenu] = useState(false);
   const submenuRef = useRef<HTMLDivElement>(null);
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -85,6 +87,7 @@ export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, sele
               icon={item.icon}
               label={item.key === 'top' && selectedSport !== 'All Sports' ? `${item.label} (${selectedSport})` : item.label}
               active={selected === item.key}
+              badge={item.key === 'notifications' ? unreadCount : undefined}
               onClick={() => {
                 if (item.key === 'top') {
                   setShowSportsSubmenu(!showSportsSubmenu);

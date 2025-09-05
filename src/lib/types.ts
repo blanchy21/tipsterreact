@@ -1,4 +1,5 @@
 export interface User {
+  id: string;
   name: string;
   handle: string;
   avatar: string;
@@ -48,4 +49,43 @@ export interface SidebarItem {
   icon: LucideIcon;
   label: string;
   key: string;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  type: 'text' | 'image' | 'file';
+}
+
+export interface Conversation {
+  id: string;
+  participants: User[];
+  lastMessage: Message;
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export interface Notification {
+  id: string;
+  type: 'like' | 'comment' | 'follow' | 'tip' | 'match_result' | 'system';
+  title: string;
+  message: string;
+  user?: User;
+  postId?: string;
+  read: boolean;
+  createdAt: string;
+  actionUrl?: string;
+}
+
+export interface NotificationSettings {
+  likes: boolean;
+  comments: boolean;
+  follows: boolean;
+  tips: boolean;
+  matchResults: boolean;
+  system: boolean;
 }

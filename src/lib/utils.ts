@@ -23,6 +23,7 @@ export const initialPosts = [
   {
     id: 'p1',
     user: { 
+      id: 'user-alex-morgan',
       name: 'Alex Morgan', 
       handle: '@alexm', 
       avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=256&auto=format&fit=crop' 
@@ -39,6 +40,7 @@ export const initialPosts = [
   {
     id: 'p2',
     user: { 
+      id: 'user-jordan-lee',
       name: 'Jordan Lee', 
       handle: '@jordlee', 
       avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256&auto=format&fit=crop' 
@@ -55,6 +57,7 @@ export const initialPosts = [
   {
     id: 'p3',
     user: { 
+      id: 'user-samir-khan',
       name: 'Samir Khan', 
       handle: '@samk', 
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop' 
@@ -118,4 +121,87 @@ export const sampleTrending = [
   { id: 'tr3', label: 'Djokovic vs Medvedev', volume: 876, delta: '+5%' },
   { id: 'tr4', label: 'Real Madrid vs Barcelona', volume: 654, delta: '+3%' },
   { id: 'tr5', label: 'Celtics vs Heat', volume: 432, delta: '+2%' },
+];
+
+export const sampleNotifications = [
+  {
+    id: 'n1',
+    type: 'like' as const,
+    title: 'New Like',
+    message: 'John Smith liked your tip on Manchester United vs Arsenal',
+    user: {
+      id: 'u1',
+      name: 'John Smith',
+      handle: '@johnsmith',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'
+    },
+    postId: 'p1',
+    read: false,
+    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
+    actionUrl: '/post/p1'
+  },
+  {
+    id: 'n2',
+    type: 'comment' as const,
+    title: 'New Comment',
+    message: 'Sarah Johnson commented on your Liverpool vs Chelsea prediction',
+    user: {
+      id: 'u2',
+      name: 'Sarah Johnson',
+      handle: '@sarahj',
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop'
+    },
+    postId: 'p2',
+    read: false,
+    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
+    actionUrl: '/post/p2'
+  },
+  {
+    id: 'n3',
+    type: 'follow' as const,
+    title: 'New Follower',
+    message: 'Mike Wilson started following you',
+    user: {
+      id: 'u3',
+      name: 'Mike Wilson',
+      handle: '@mikew',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop'
+    },
+    read: false,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    actionUrl: '/profile/mikew'
+  },
+  {
+    id: 'n4',
+    type: 'tip' as const,
+    title: 'New Tip Available',
+    message: 'Emma Davis shared a new tip for the NBA Finals game',
+    user: {
+      id: 'u4',
+      name: 'Emma Davis',
+      handle: '@emmad',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=256&auto=format&fit=crop'
+    },
+    postId: 'p3',
+    read: true,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    actionUrl: '/post/p3'
+  },
+  {
+    id: 'n5',
+    type: 'match_result' as const,
+    title: 'Match Result',
+    message: 'Your prediction for Manchester United vs Arsenal was correct!',
+    read: true,
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+    actionUrl: '/post/p1'
+  },
+  {
+    id: 'n6',
+    type: 'system' as const,
+    title: 'Welcome to Tipster!',
+    message: 'Thanks for joining our community of sports analysts. Start sharing your insights!',
+    read: true,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+  }
 ];

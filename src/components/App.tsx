@@ -8,6 +8,11 @@ import MobileHeader from './MobileHeader';
 import Feed from './Feed';
 import RightSidebar from './RightSidebar';
 import PostModal from './PostModal';
+import ProfilePage from './ProfilePage';
+import MessagesPage from './MessagesPage';
+import ChatPage from './ChatPage';
+import NotificationsPage from './NotificationsPage';
+import { NotificationsProvider } from '@/lib/contexts/NotificationsContext';
 
 export default function App() {
   const [selected, setSelected] = useState('home');
@@ -20,7 +25,10 @@ export default function App() {
 
   useEffect(() => {
     // Load entrance state
-    const timer = setTimeout(() => setIsLoaded(true), 60);
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+      document.body.classList.add('loaded');
+    }, 50);
     return () => clearTimeout(timer);
   }, []);
 
@@ -57,6 +65,7 @@ export default function App() {
     const newPost: Post = {
       id: 'p' + Math.random().toString(36).slice(2),
       user: { 
+        id: 'current-user',
         name: 'You', 
         handle: '@you', 
         avatar: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop' 
@@ -85,44 +94,67 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <MobileHeader 
-        onOpenPost={() => setShowPost(true)} 
-        onMenu={() => {}} 
-        isLoaded={isLoaded} 
-      />
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar
-          selected={selected}
-          onSelect={setSelected}
-          onOpenPost={() => setShowPost(true)}
-          isLoaded={isLoaded}
-          selectedSport={selectedSport}
-          onSportSelect={handleSportSelect}
+    <NotificationsProvider>
+      <div className="h-screen flex flex-col overflow-hidden">
+        <MobileHeader 
+          onOpenPost={() => setShowPost(true)} 
+          onMenu={() => {}} 
+          isLoaded={isLoaded} 
         />
+        <div className="flex-1 flex overflow-hidden">
+          <Sidebar
+            selected={selected}
+            onSelect={setSelected}
+            onOpenPost={() => setShowPost(true)}
+            isLoaded={isLoaded}
+            selectedSport={selectedSport}
+            onSportSelect={handleSportSelect}
+          />
 
-        <Feed
-          posts={filteredPosts}
-          isLoaded={isLoaded}
-          query={query}
-          onQueryChange={setQuery}
+          {selected === 'profile' ? (
+            <div className="flex-1 overflow-y-auto">
+              <ProfilePage />
+            </div>
+          ) : selected === 'messages' ? (
+            <div className="flex-1">
+              <MessagesPage />
+            </div>
+          ) : selected === 'chat' ? (
+            <div className="flex-1">
+              <ChatPage />
+            </div>
+          ) : selected === 'notifications' ? (
+            <div className="flex-1">
+              <NotificationsPage />
+            </div>
+          ) : (
+            <>
+              <Feed
+                posts={filteredPosts}
+                isLoaded={isLoaded}
+                query={query}
+                onQueryChange={setQuery}
+                selectedSport={selectedSport}
+              />
+
+              <RightSidebar
+                fixtures={sampleFixtures}
+                following={following}
+                onToggleFollow={toggleFollow}
+                trending={sampleTrending}
+                isLoaded={isLoaded}
+              />
+            </>
+          )}
+        </div>
+
+        <PostModal
+          open={showPost}
+          onClose={() => setShowPost(false)}
+          onSubmit={handleSubmitPost}
           selectedSport={selectedSport}
-        />
-
-        <RightSidebar
-          fixtures={sampleFixtures}
-          following={following}
-          onToggleFollow={toggleFollow}
-          trending={sampleTrending}
-          isLoaded={isLoaded}
         />
       </div>
-
-      <PostModal
-        open={showPost}
-        onClose={() => setShowPost(false)}
-        onSubmit={handleSubmitPost}
-      />
-    </div>
+    </NotificationsProvider>
   );
 }

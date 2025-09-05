@@ -3,6 +3,7 @@
 import React from 'react';
 import { Menu, Plus } from 'lucide-react';
 import Logo from './Logo';
+import NotificationsIcon from './NotificationsIcon';
 
 interface MobileHeaderProps {
   onOpenPost: () => void;
@@ -31,13 +32,16 @@ export default function MobileHeader({ onOpenPost, onMenu, isLoaded }: MobileHea
           <Menu className="w-5 h-5 text-slate-300" />
         </button>
         <Logo collapsed />
-        <button
-          onClick={onOpenPost}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 hover:text-sky-200 transition ring-1 ring-inset ring-sky-500/30 hover:ring-sky-500/40"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="text-sm font-medium">Post</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <NotificationsIcon className="text-slate-300" />
+          <button
+            onClick={onOpenPost}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 hover:text-sky-200 transition ring-1 ring-inset ring-sky-500/30 hover:ring-sky-500/40"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-sm font-medium">Post</span>
+          </button>
+        </div>
       </div>
     </header>
   );

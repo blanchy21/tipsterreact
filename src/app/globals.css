@@ -45,3 +45,85 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.3);
 }
+
+/* Animation keyframes */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeInSlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeInSlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fadeInBlur {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* Fallback for elements that should be visible */
+.animate-fade-in {
+  animation: fadeInSlideUp 0.8s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: fadeInSlideRight 0.8s ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: fadeInSlideLeft 0.8s ease-out forwards;
+}
+
+/* Ensure elements are visible after animation completes */
+.animate-fade-in,
+.animate-slide-right,
+.animate-slide-left {
+  opacity: 1 !important;
+}
+
+/* Fallback: Make sure elements are visible by default */
+.opacity-0 {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+/* When loaded, make elements visible */
+.loaded .opacity-0 {
+  opacity: 1;
+}

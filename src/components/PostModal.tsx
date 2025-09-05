@@ -8,6 +8,7 @@ interface PostModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (post: Omit<Post, 'id' | 'user' | 'createdAt' | 'likes' | 'comments' | 'views'>) => void;
+  selectedSport?: string;
 }
 
 const sports = [
@@ -16,7 +17,6 @@ const sports = [
   'Tennis',
   'Baseball',
   'Hockey',
-  'Soccer',
   'Cricket',
   'Golf',
   'Boxing',
@@ -31,13 +31,13 @@ const sports = [
   'Cycling',
   'Formula 1',
   'MotoGP',
-  'NFL',
+  'American Football',
   'NBA',
   'MLB',
   'NHL'
 ];
 
-export default function PostModal({ open, onClose, onSubmit }: PostModalProps) {
+export default function PostModal({ open, onClose, onSubmit, selectedSport }: PostModalProps) {
   const [sport, setSport] = useState('Football');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -46,12 +46,13 @@ export default function PostModal({ open, onClose, onSubmit }: PostModalProps) {
 
   useEffect(() => {
     if (open) {
-      setSport('Football');
+      // Use the selected sport from sidebar, or default to Football
+      setSport(selectedSport && selectedSport !== 'All Sports' ? selectedSport : 'Football');
       setTitle('');
       setContent('');
       setTags('');
     }
-  }, [open]);
+  }, [open, selectedSport]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

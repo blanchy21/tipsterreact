@@ -17,7 +17,6 @@ const sports = [
   'Tennis',
   'Baseball',
   'Hockey',
-  'Soccer',
   'Cricket',
   'Golf',
   'Boxing',
@@ -32,7 +31,7 @@ const sports = [
   'Cycling',
   'Formula 1',
   'MotoGP',
-  'NFL',
+  'American Football',
   'NBA',
   'MLB',
   'NHL'
