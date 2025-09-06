@@ -1,3 +1,5 @@
+import { normalizeImageUrl } from './imageUtils';
+
 // Utility function for time ago
 export function timeAgo(date: string): string {
   const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -26,7 +28,7 @@ export const initialPosts = [
       id: 'user-alex-morgan',
       name: 'Alex Morgan', 
       handle: '@alexm', 
-      avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=256&auto=format&fit=crop' 
+      avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=256&h=256&fit=crop&crop=face' 
     },
     sport: 'Football',
     title: 'Arsenal vs Man United: Key Matchup Analysis',
@@ -44,7 +46,7 @@ export const initialPosts = [
       id: 'user-jordan-lee',
       name: 'Jordan Lee', 
       handle: '@jordlee', 
-      avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256&auto=format&fit=crop' 
+      avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=256&h=256&fit=crop&crop=face' 
     },
     sport: 'Basketball',
     title: 'Lakers vs Warriors: LeBron vs Curry Rivalry Continues',
@@ -62,7 +64,7 @@ export const initialPosts = [
       id: 'user-samir-khan',
       name: 'Samir Khan', 
       handle: '@samk', 
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=256&auto=format&fit=crop' 
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=256&h=256&fit=crop&crop=face' 
     },
     sport: 'Tennis',
     title: 'Djokovic vs Medvedev: Experience vs Youth',
@@ -80,7 +82,7 @@ export const initialPosts = [
       id: 'user-maria-silva',
       name: 'Maria Silva', 
       handle: '@marias', 
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=256&auto=format&fit=crop' 
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=256&h=256&fit=crop&crop=face' 
     },
     sport: 'Football',
     title: 'Champions League Final: Real Madrid vs Manchester City Tactical Preview',
@@ -98,7 +100,7 @@ export const initialPosts = [
       id: 'user-david-kim',
       name: 'David Kim', 
       handle: '@davidk', 
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop' 
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=face') 
     },
     sport: 'Basketball',
     title: 'NBA Finals: Celtics vs Heat Game 7 Analysis',
@@ -124,7 +126,7 @@ export const sampleFollowing = [
     id: 'u1', 
     name: 'Mia Park', 
     handle: '@miap', 
-      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=256&auto=format&fit=crop', 
+      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=256&h=256&fit=crop&crop=face', 
     winRate: 64, 
     following: true 
   },
@@ -132,7 +134,7 @@ export const sampleFollowing = [
     id: 'u2', 
     name: 'Chris Young', 
     handle: '@cyoung', 
-    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=256&auto=format&fit=crop', 
+    avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=256&h=256&fit=crop&crop=face', 
     winRate: 58, 
     following: false 
   },
@@ -140,7 +142,7 @@ export const sampleFollowing = [
     id: 'u3', 
     name: 'Ivy Chen', 
     handle: '@ivy', 
-    avatar: 'https://images.unsplash.com/photo-1548142813-c348350df52b?q=80&w=256&auto=format&fit=crop', 
+    avatar: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=256&h=256&fit=crop&crop=face', 
     winRate: 71, 
     following: true 
   },
@@ -148,7 +150,7 @@ export const sampleFollowing = [
     id: 'u4', 
     name: 'Diego Ruiz', 
     handle: '@druiz', 
-    avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=256&auto=format&fit=crop', 
+    avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=256&h=256&fit=crop&crop=face', 
     winRate: 66, 
     following: false 
   },
@@ -172,9 +174,10 @@ export const sampleNotifications = [
       id: 'u1',
       name: 'John Smith',
       handle: '@johnsmith',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=face'
     },
     postId: 'p1',
+    recipientId: 'current-user',
     read: false,
     createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
     actionUrl: '/post/p1'
@@ -188,9 +191,10 @@ export const sampleNotifications = [
       id: 'u2',
       name: 'Sarah Johnson',
       handle: '@sarahj',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop'
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=face'
     },
     postId: 'p2',
+    recipientId: 'current-user',
     read: false,
     createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
     actionUrl: '/post/p2'
@@ -204,8 +208,9 @@ export const sampleNotifications = [
       id: 'u3',
       name: 'Mike Wilson',
       handle: '@mikew',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop'
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=face')
     },
+    recipientId: 'current-user',
     read: false,
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
     actionUrl: '/profile/mikew'
@@ -219,9 +224,10 @@ export const sampleNotifications = [
       id: 'u4',
       name: 'Emma Davis',
       handle: '@emmad',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=256&auto=format&fit=crop'
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=256&h=256&fit=crop&crop=face'
     },
     postId: 'p3',
+    recipientId: 'current-user',
     read: true,
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     actionUrl: '/post/p3'
@@ -231,6 +237,7 @@ export const sampleNotifications = [
     type: 'match_result' as const,
     title: 'Match Result',
     message: 'Your prediction for Manchester United vs Arsenal was correct!',
+    recipientId: 'current-user',
     read: true,
     createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
     actionUrl: '/post/p1'
@@ -238,8 +245,9 @@ export const sampleNotifications = [
   {
     id: 'n6',
     type: 'system' as const,
-    title: 'Welcome to Tipster!',
+    title: 'Welcome to Sports Arena!',
     message: 'Thanks for joining our community of sports analysts. Start sharing your insights!',
+    recipientId: 'current-user',
     read: true,
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
   }

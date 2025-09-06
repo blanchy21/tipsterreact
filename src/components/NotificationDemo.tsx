@@ -17,24 +17,25 @@ export default function NotificationDemo({ className = '' }: NotificationDemoPro
       id: 'demo1',
       name: 'Alex Thompson',
       handle: '@alexthompson',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop'
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=face')
     },
     {
       id: 'demo2',
       name: 'Lisa Chen',
       handle: '@lisachen',
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop')
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=face')
     },
     {
       id: 'demo3',
       name: 'David Rodriguez',
       handle: '@davidr',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=face'
     }
   ];
 
   const addDemoNotification = (type: 'like' | 'comment' | 'follow' | 'tip' | 'match_result' | 'system') => {
     const user = demoUsers[Math.floor(Math.random() * demoUsers.length)];
+    const currentUserId = 'current-user'; // Demo user ID
     
     const notifications = {
       like: {
@@ -42,37 +43,43 @@ export default function NotificationDemo({ className = '' }: NotificationDemoPro
         title: 'New Like',
         message: `${user.name} liked your tip on Manchester United vs Arsenal`,
         user,
-        postId: 'demo-post-1'
+        postId: 'demo-post-1',
+        recipientId: currentUserId
       },
       comment: {
         type: 'comment' as const,
         title: 'New Comment',
         message: `${user.name} commented on your Liverpool vs Chelsea prediction`,
         user,
-        postId: 'demo-post-2'
+        postId: 'demo-post-2',
+        recipientId: currentUserId
       },
       follow: {
         type: 'follow' as const,
         title: 'New Follower',
         message: `${user.name} started following you`,
-        user
+        user,
+        recipientId: currentUserId
       },
       tip: {
         type: 'tip' as const,
         title: 'New Tip Available',
         message: `${user.name} shared a new tip for the NBA Finals game`,
         user,
-        postId: 'demo-post-3'
+        postId: 'demo-post-3',
+        recipientId: currentUserId
       },
       match_result: {
         type: 'match_result' as const,
         title: 'Match Result',
-        message: 'Your prediction for Manchester United vs Arsenal was correct!'
+        message: 'Your prediction for Manchester United vs Arsenal was correct!',
+        recipientId: currentUserId
       },
       system: {
         type: 'system' as const,
         title: 'System Update',
-        message: 'New features have been added to the platform. Check them out!'
+        message: 'New features have been added to the platform. Check them out!',
+        recipientId: currentUserId
       }
     };
 

@@ -8,6 +8,7 @@ import { timeAgo } from '@/lib/utils';
 import LikeButton from './LikeButton';
 import FollowButton from './FollowButton';
 import CommentsList from './CommentsList';
+import AvatarWithFallback from './AvatarWithFallback';
 
 interface PostCardProps {
   post: Post;
@@ -31,12 +32,12 @@ export default function PostCard({ post, onLikeChange, onCommentCountChange }: P
   return (
     <article className="group rounded-xl bg-white/[0.03] hover:bg-white/[0.05] transition ring-1 ring-white/5 hover:ring-white/10 p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <Image 
-          src={post.user.avatar} 
-          alt={post.user.name} 
-          width={40}
-          height={40}
-          className="rounded-full object-cover ring-1 ring-white/10" 
+        <AvatarWithFallback
+          src={post.user.avatar}
+          alt={post.user.name}
+          name={post.user.name}
+          size={40}
+          className="ring-1 ring-white/10"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">

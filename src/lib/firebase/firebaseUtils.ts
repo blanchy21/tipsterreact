@@ -16,9 +16,12 @@ import {
   writeBatch,
   getDoc,
   setDoc,
+  query,
+  where,
+  orderBy,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { User, Post, Comment, CommentFormData } from "../types";
+import { User, Post, Comment, CommentFormData, Notification } from "../types";
 import { normalizeImageUrl } from "../imageUtils";
 
 // Auth functions
@@ -67,6 +70,79 @@ export const getDocuments = async (collectionName: string) => {
   }));
 };
 
+// Notification functions
+export const createNotification = async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  const notification: Notification = {
+    ...notificationData,
+    id: 'n' + Math.random().toString(36).slice(2),
+    createdAt: new Date().toISOString(),
+    read: false,
+  };
+
+  return addDoc(collection(db, "notifications"), notification);
+};
+
+export const getUserNotifications = async (userId: string) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  // Get notifications where the user is the recipient
+  const notificationsRef = collection(db, "notifications");
+  const q = query(notificationsRef, where("recipientId", "==", userId), orderBy("createdAt", "desc"));
+  
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Notification[];
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  return updateDoc(doc(db, "notifications", notificationId), {
+    read: true
+  });
+};
+
+export const markAllNotificationsAsRead = async (userId: string) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  const notificationsRef = collection(db, "notifications");
+  const q = query(notificationsRef, where("recipientId", "==", userId), where("read", "==", false));
+  
+  const querySnapshot = await getDocs(q);
+  const batch = writeBatch(db);
+  
+  querySnapshot.docs.forEach(doc => {
+    batch.update(doc.ref, { read: true });
+  });
+  
+  return batch.commit();
+};
+
+export const deleteNotification = async (notificationId: string) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  return deleteDoc(doc(db, "notifications", notificationId));
+};
+
 export const updateDocument = (collectionName: string, id: string, data: any) => {
   if (!db) {
     console.warn("Firebase Firestore not available");
@@ -90,11 +166,42 @@ export const likePost = async (postId: string, userId: string) => {
     throw new Error("Firebase Firestore not available");
   }
   
-  const postRef = doc(db, "posts", postId);
-  return updateDoc(postRef, {
-    likedBy: arrayUnion(userId),
-    likes: 1 // This will be handled by a cloud function in production
-  });
+  try {
+    // Get post details to find the post owner
+    const postDoc = await getDoc(doc(db, "posts", postId));
+    if (!postDoc.exists()) {
+      throw new Error("Post not found");
+    }
+    
+    const postData = postDoc.data();
+    const postOwnerId = postData.userId;
+    
+    // Don't create notification if user is liking their own post
+    if (postOwnerId !== userId) {
+      // Get user profile for notification
+      const userProfile = await getUserProfile(userId);
+      if (userProfile) {
+        await createNotification({
+          type: 'like',
+          title: 'New Like',
+          message: `${userProfile.name} liked your post`,
+          user: userProfile,
+          postId: postId,
+          recipientId: postOwnerId,
+          actionUrl: `/post/${postId}`
+        });
+      }
+    }
+    
+    const postRef = doc(db, "posts", postId);
+    return updateDoc(postRef, {
+      likedBy: arrayUnion(userId),
+      likes: 1 // This will be handled by a cloud function in production
+    });
+  } catch (error) {
+    console.error("Error in likePost:", error);
+    throw error;
+  }
 };
 
 export const unlikePost = async (postId: string, userId: string) => {
@@ -162,27 +269,49 @@ export const followUser = async (followerId: string, followingId: string) => {
     throw new Error("Firebase Firestore not available");
   }
   
-  // Ensure both user profiles exist before attempting follow operation
-  await ensureUserProfileExists(followerId);
-  await ensureUserProfileExists(followingId);
-  
-  const batch = writeBatch(db);
-  
-  // Add to follower's following list
-  const followerRef = doc(db, "users", followerId);
-  batch.update(followerRef, {
-    following: arrayUnion(followingId),
-    followingCount: 1 // This will be handled by a cloud function in production
-  });
-  
-  // Add to following user's followers list
-  const followingRef = doc(db, "users", followingId);
-  batch.update(followingRef, {
-    followers: arrayUnion(followerId),
-    followersCount: 1 // This will be handled by a cloud function in production
-  });
-  
-  return batch.commit();
+  try {
+    // Ensure both user profiles exist before attempting follow operation
+    await ensureUserProfileExists(followerId);
+    await ensureUserProfileExists(followingId);
+    
+    // Get follower profile for notification
+    const followerProfile = await getUserProfile(followerId);
+    
+    const batch = writeBatch(db);
+    
+    // Add to follower's following list
+    const followerRef = doc(db, "users", followerId);
+    batch.update(followerRef, {
+      following: arrayUnion(followingId),
+      followingCount: 1 // This will be handled by a cloud function in production
+    });
+    
+    // Add to following user's followers list
+    const followingRef = doc(db, "users", followingId);
+    batch.update(followingRef, {
+      followers: arrayUnion(followerId),
+      followersCount: 1 // This will be handled by a cloud function in production
+    });
+    
+    await batch.commit();
+    
+    // Create notification for the user being followed
+    if (followerProfile) {
+      await createNotification({
+        type: 'follow',
+        title: 'New Follower',
+        message: `${followerProfile.name} started following you`,
+        user: followerProfile,
+        recipientId: followingId,
+        actionUrl: `/profile/${followerId}`
+      });
+    }
+    
+    return Promise.resolve();
+  } catch (error) {
+    console.error("Error in followUser:", error);
+    throw error;
+  }
 };
 
 export const unfollowUser = async (followerId: string, followingId: string) => {
@@ -256,7 +385,43 @@ export const getUserFollowers = async (userId: string): Promise<User[]> => {
       const followerRef = doc(db, "users", followerId);
       const followerDoc = await getDoc(followerRef);
       if (followerDoc.exists()) {
-        return { id: followerDoc.id, ...followerDoc.data() } as User;
+        const followerData = followerDoc.data();
+        return { 
+          id: followerDoc.id,
+          name: followerData.name || 'Unknown User',
+          handle: followerData.handle || `@user${followerDoc.id.slice(0, 8)}`,
+          avatar: normalizeImageUrl(followerData.photoURL || followerData.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'),
+          followers: followerData.followers || [],
+          following: followerData.following || [],
+          followersCount: followerData.followersCount || 0,
+          followingCount: followerData.followingCount || 0,
+          bio: followerData.bio || '',
+          location: followerData.location || '',
+          website: followerData.website || '',
+          socialMedia: followerData.socialMedia || {},
+          profilePhotos: followerData.profilePhotos || [],
+          coverPhoto: followerData.coverPhoto || '',
+          specializations: followerData.specializations || [],
+          memberSince: followerData.memberSince || new Date().toISOString(),
+          isVerified: followerData.isVerified || false,
+          privacy: followerData.privacy || {
+            showEmail: false,
+            showPhone: false,
+            showLocation: false,
+            showSocialMedia: false
+          },
+          preferences: followerData.preferences || {
+            notifications: {
+              likes: true,
+              comments: true,
+              follows: true,
+              mentions: true,
+              system: true
+            },
+            theme: 'dark',
+            language: 'en'
+          }
+        };
       }
       return null;
     })
@@ -290,7 +455,43 @@ export const getUserFollowing = async (userId: string): Promise<User[]> => {
       const followingRef = doc(db, "users", followingId);
       const followingDoc = await getDoc(followingRef);
       if (followingDoc.exists()) {
-        return { id: followingDoc.id, ...followingDoc.data() } as User;
+        const followingData = followingDoc.data();
+        return { 
+          id: followingDoc.id,
+          name: followingData.name || 'Unknown User',
+          handle: followingData.handle || `@user${followingDoc.id.slice(0, 8)}`,
+          avatar: normalizeImageUrl(followingData.photoURL || followingData.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'),
+          followers: followingData.followers || [],
+          following: followingData.following || [],
+          followersCount: followingData.followersCount || 0,
+          followingCount: followingData.followingCount || 0,
+          bio: followingData.bio || '',
+          location: followingData.location || '',
+          website: followingData.website || '',
+          socialMedia: followingData.socialMedia || {},
+          profilePhotos: followingData.profilePhotos || [],
+          coverPhoto: followingData.coverPhoto || '',
+          specializations: followingData.specializations || [],
+          memberSince: followingData.memberSince || new Date().toISOString(),
+          isVerified: followingData.isVerified || false,
+          privacy: followingData.privacy || {
+            showEmail: false,
+            showPhone: false,
+            showLocation: false,
+            showSocialMedia: false
+          },
+          preferences: followingData.preferences || {
+            notifications: {
+              likes: true,
+              comments: true,
+              follows: true,
+              mentions: true,
+              system: true
+            },
+            theme: 'dark',
+            language: 'en'
+          }
+        };
       }
       return null;
     })
@@ -464,7 +665,43 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
     const userSnap = await getDoc(userRef);
     
     if (userSnap.exists()) {
-      return { id: userSnap.id, ...userSnap.data() } as User;
+      const userData = userSnap.data();
+      return { 
+        id: userSnap.id,
+        name: userData.name || 'Unknown User',
+        handle: userData.handle || `@user${userSnap.id.slice(0, 8)}`,
+        avatar: normalizeImageUrl(userData.photoURL || userData.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'),
+        followers: userData.followers || [],
+        following: userData.following || [],
+        followersCount: userData.followersCount || 0,
+        followingCount: userData.followingCount || 0,
+        bio: userData.bio || '',
+        location: userData.location || '',
+        website: userData.website || '',
+        socialMedia: userData.socialMedia || {},
+        profilePhotos: userData.profilePhotos || [],
+        coverPhoto: userData.coverPhoto || '',
+        specializations: userData.specializations || [],
+        memberSince: userData.memberSince || new Date().toISOString(),
+        isVerified: userData.isVerified || false,
+        privacy: userData.privacy || {
+          showEmail: false,
+          showPhone: false,
+          showLocation: false,
+          showSocialMedia: false
+        },
+        preferences: userData.preferences || {
+          notifications: {
+            likes: true,
+            comments: true,
+            follows: true,
+            mentions: true,
+            system: true
+          },
+          theme: 'dark',
+          language: 'en'
+        }
+      };
     }
     return null;
   } catch (error) {
@@ -629,7 +866,7 @@ export const getFollowSuggestions = async (userId: string, limit: number = 10): 
         id: user.id,
         name: user.displayName || user.name || 'Anonymous',
         handle: user.handle || `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
-        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'),
+        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'),
         bio: user.bio || '',
         specializations: user.specializations || [],
         followersCount: user.followersCount || 0,
@@ -670,7 +907,7 @@ export const searchUsers = async (query: string, limit: number = 20): Promise<Us
         id: user.id,
         name: user.displayName || user.name || 'Anonymous',
         handle: user.handle || `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
-        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'),
+        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'),
         bio: user.bio || '',
         specializations: user.specializations || [],
         followersCount: user.followersCount || 0,
@@ -705,7 +942,7 @@ export const createComment = async (postId: string, userId: string, commentData:
         id: userProfile.id,
         name: userProfile.name || 'Anonymous',
         handle: userProfile.handle || `@${(userProfile.name || 'user').toLowerCase().replace(/\s+/g, '')}`,
-        avatar: userProfile.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'
+        avatar: userProfile.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'
       },
       content: commentData.content,
       createdAt: new Date().toISOString(),
@@ -724,6 +961,26 @@ export const createComment = async (postId: string, userId: string, commentData:
 
     // Update post comment count
     await incrementPostCommentCount(postId);
+
+    // Get post details to find the post owner and create notification
+    const postDoc = await getDoc(doc(db, "posts", postId));
+    if (postDoc.exists()) {
+      const postData = postDoc.data();
+      const postOwnerId = postData.userId;
+      
+      // Don't create notification if user is commenting on their own post
+      if (postOwnerId !== userId) {
+        await createNotification({
+          type: 'comment',
+          title: 'New Comment',
+          message: `${userProfile.name} commented on your post`,
+          user: userProfile,
+          postId: postId,
+          recipientId: postOwnerId,
+          actionUrl: `/post/${postId}`
+        });
+      }
+    }
 
     return createdComment;
   } catch (error) {

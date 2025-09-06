@@ -12,6 +12,7 @@ interface NotificationsIconProps {
 export default function NotificationsIcon({ className = '' }: NotificationsIconProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [hasNewNotifications, setHasNewNotifications] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, settings, updateSettings } = useNotifications();
 
@@ -27,6 +28,17 @@ export default function NotificationsIcon({ className = '' }: NotificationsIconP
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Detect new notifications for visual indicators
+  useEffect(() => {
+    const unreadNotifications = notifications.filter(n => !n.read);
+    if (unreadNotifications.length > 0) {
+      setHasNewNotifications(true);
+      // Auto-hide the indicator after 5 seconds
+      const timer = setTimeout(() => setHasNewNotifications(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notifications]);
 
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
@@ -75,13 +87,22 @@ export default function NotificationsIcon({ className = '' }: NotificationsIconP
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-full transition-colors"
+        className={`relative p-2 text-slate-300 hover:text-slate-100 hover:bg-white/5 rounded-full transition-all duration-300 ${
+          hasNewNotifications ? 'animate-pulse' : ''
+        }`}
       >
-        <Bell className="w-6 h-6" />
+        <Bell className={`w-6 h-6 transition-transform duration-300 ${
+          hasNewNotifications ? 'scale-110' : ''
+        }`} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className={`absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transition-all duration-300 ${
+            hasNewNotifications ? 'animate-bounce scale-125' : ''
+          }`}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
+        )}
+        {hasNewNotifications && unreadCount === 0 && (
+          <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full animate-ping"></div>
         )}
       </button>
 
@@ -146,17 +167,22 @@ export default function NotificationsIcon({ className = '' }: NotificationsIconP
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`p-4 border-b border-white/10 hover:bg-white/5 cursor-pointer transition-colors ${
-                      !notification.read ? 'bg-blue-500/10' : ''
+                    className={`p-4 border-b border-white/10 hover:bg-white/5 cursor-pointer transition-all duration-300 ${
+                      !notification.read ? 'bg-blue-500/10 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
                     <div className="flex items-start space-x-3">
                       <div className="text-lg">{getNotificationIcon(notification.type)}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-slate-100 truncate">
-                            {notification.title}
-                          </p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-sm font-medium text-slate-100 truncate">
+                              {notification.title}
+                            </p>
+                            {!notification.read && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            )}
+                          </div>
                           <div className="flex items-center space-x-2">
                             <span className="text-xs text-slate-400">
                               {formatTimeAgo(notification.createdAt)}

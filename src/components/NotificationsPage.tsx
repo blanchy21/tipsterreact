@@ -227,7 +227,7 @@ export default function NotificationsPage() {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`p-6 hover:bg-white/5 cursor-pointer transition-colors ${
+                className={`p-6 hover:bg-white/5 cursor-pointer transition-all duration-300 ${
                   !notification.read ? 'bg-blue-500/10 border-l-4 border-l-blue-500' : ''
                 }`}
               >

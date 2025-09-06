@@ -11,7 +11,7 @@ const FollowTest: React.FC = () => {
     id: 'test-user-123',
     name: 'Test User',
     handle: '@testuser',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=320&q=80',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&crop=face',
     followers: [],
     following: [],
     followersCount: 0,

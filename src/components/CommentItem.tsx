@@ -7,6 +7,7 @@ import { Comment } from '@/lib/types';
 import { timeAgo } from '@/lib/utils';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { toggleCommentLike, deleteComment } from '@/lib/firebase/firebaseUtils';
+import AvatarWithFallback from './AvatarWithFallback';
 
 interface CommentItemProps {
   comment: Comment;
@@ -90,12 +91,12 @@ export default function CommentItem({
   return (
     <div className={`group ${isReply ? 'ml-8 border-l border-slate-700/50 pl-4' : ''}`}>
       <div className="flex items-start gap-3">
-        <Image 
-          src={comment.user.avatar} 
-          alt={comment.user.name} 
-          width={32}
-          height={32}
-          className="rounded-full object-cover ring-1 ring-white/10 flex-shrink-0" 
+        <AvatarWithFallback
+          src={comment.user.avatar}
+          alt={comment.user.name}
+          name={comment.user.name}
+          size={32}
+          className="ring-1 ring-white/10 flex-shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">

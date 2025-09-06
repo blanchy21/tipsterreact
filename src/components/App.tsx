@@ -22,6 +22,7 @@ import { AuthProvider } from '@/lib/contexts/AuthContext';
 import { ProfileProvider } from '@/lib/contexts/ProfileContext';
 import { FollowingProvider } from '@/lib/contexts/FollowingContext';
 import { useAuth } from '@/lib/hooks/useAuth';
+import NotificationToastManager from './NotificationToastManager';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -124,7 +125,7 @@ function AppContent() {
           id: user.uid,
           name: user.displayName || 'Anonymous', 
           handle: `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`, 
-          avatar: user.photoURL || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop' 
+          avatar: user.photoURL || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face' 
         }
       };
 
@@ -329,6 +330,8 @@ function AppContent() {
           onClose={handleCloseAuthModal}
           initialMode={authModalMode}
         />
+
+        <NotificationToastManager />
       </div>
     </NotificationsProvider>
   );

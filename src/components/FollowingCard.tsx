@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Users } from 'lucide-react';
 import { User } from '@/lib/types';
 import { normalizeImageUrl } from '@/lib/imageUtils';
+import AvatarWithFallback from './AvatarWithFallback';
 
 interface FollowingCardProps {
   list: User[];
@@ -21,12 +22,12 @@ export default function FollowingCard({ list, onToggle }: FollowingCardProps) {
       <div className="divide-y divide-white/5 overflow-y-auto flex-1">
         {list.slice(0, 5).map((user) => (
           <div key={user.id} className="px-4 py-3 flex items-center gap-3">
-            <Image 
-              src={normalizeImageUrl(user.avatar)} 
-              alt={user.name || 'User'} 
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10 flex-shrink-0" 
+            <AvatarWithFallback
+              src={user.avatar}
+              alt={user.name || 'User'}
+              name={user.name || 'User'}
+              size={36}
+              className="ring-1 ring-white/10 flex-shrink-0"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">

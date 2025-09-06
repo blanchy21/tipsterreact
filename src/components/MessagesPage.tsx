@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Conversation, User, Message } from '@/lib/types';
 import MessagesList from './MessagesList';
 import ChatWindow from './ChatWindow';
+import { normalizeImageUrl } from '@/lib/imageUtils';
 
 const MessagesPage: React.FC = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -14,7 +15,7 @@ const MessagesPage: React.FC = () => {
     id: 'current-user',
     name: 'You',
     handle: '@you',
-    avatar: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'
+    avatar: 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?w=96&h=96&fit=crop&crop=face'
   };
 
   // Sample conversations data
@@ -27,7 +28,7 @@ const MessagesPage: React.FC = () => {
           id: 'user-1',
           name: 'Sarah Chen',
           handle: '@sarahchen',
-          avatar: 'https://images.unsplash.com/photo-1640402882370-eb3d172f026e?w=320&q=80'
+          avatar: 'https://images.unsplash.com/photo-1640402882370-eb3d172f026e?w=96&h=96&fit=crop&crop=face'
         }
       ],
       lastMessage: {
@@ -50,7 +51,7 @@ const MessagesPage: React.FC = () => {
           id: 'user-2',
           name: 'Marcus Rodriguez',
           handle: '@marcusrod',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=3840&q=80'
+          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&crop=face'
         }
       ],
       lastMessage: {
@@ -73,7 +74,7 @@ const MessagesPage: React.FC = () => {
           id: 'user-3',
           name: 'Alex Thompson',
           handle: '@alexthompson',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'
+          avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face')
         }
       ],
       lastMessage: {
@@ -96,7 +97,7 @@ const MessagesPage: React.FC = () => {
           id: 'user-4',
           name: 'Emma Wilson',
           handle: '@emmawilson',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=320&q=80'
+          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&h=96&fit=crop&crop=face'
         }
       ],
       lastMessage: {
@@ -119,7 +120,7 @@ const MessagesPage: React.FC = () => {
           id: 'user-5',
           name: 'David Kim',
           handle: '@davidkim',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'
+          avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face')
         }
       ],
       lastMessage: {

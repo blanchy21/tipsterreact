@@ -107,6 +107,7 @@ export interface Notification {
   message: string;
   user?: User;
   postId?: string;
+  recipientId: string; // ID of the user who should receive this notification
   read: boolean;
   createdAt: string;
   actionUrl?: string;

@@ -96,7 +96,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     id: currentUser.uid,
     name: currentUser.displayName || 'User',
     handle: `@${currentUser.email?.split('@')[0] || 'user'}`,
-    avatar: normalizeImageUrl(currentUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'),
+    avatar: normalizeImageUrl(currentUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face'),
     followers: [],
     following: [],
     followersCount: 0,
@@ -231,7 +231,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                   />
                 ) : (
                   <Image 
-                    src={normalizeImageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80")} 
+                    src={normalizeImageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=400&fit=crop")} 
                     alt="football stadium" 
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -248,7 +248,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     />
                   ) : (
                     <Image 
-                      src={normalizeImageUrl("https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80")} 
+                      src={normalizeImageUrl("https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=400&fit=crop")} 
                       alt="basketball court" 
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -464,7 +464,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 <div className="flex items-center justify-between opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.6s forwards'}}>
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
-                      <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face" alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
+                      <Image src={normalizeImageUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face")} alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" style={{ width: 'auto', height: 'auto' }} />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-indigo-600 animate-pulse"></div>
                     </div>
                     <div>

@@ -3,6 +3,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Notification, NotificationSettings } from "../types";
 import { sampleNotifications } from "../utils";
+import { useAuth } from "../hooks/useAuth";
+import { 
+  getUserNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead as markAllAsReadFirebase,
+  createNotification as createNotificationFirebase,
+  deleteNotification as deleteNotificationFirebase
+} from "../firebase/firebaseUtils";
+import { onSnapshot, query, collection, where, orderBy, getDocs, writeBatch } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -36,6 +46,7 @@ const NotificationsContext = createContext<NotificationsContextType>({
 });
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [settings, setSettings] = useState<NotificationSettings>({
     likes: true,
@@ -46,24 +57,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     system: true,
   });
 
-  // Load notifications and settings from localStorage on mount
+  // Load settings from localStorage on mount
   useEffect(() => {
-    const savedNotifications = localStorage.getItem('notifications');
     const savedSettings = localStorage.getItem('notificationSettings');
-    
-    if (savedNotifications) {
-      try {
-        setNotifications(JSON.parse(savedNotifications));
-      } catch (error) {
-        console.error('Error loading notifications:', error);
-        // Fallback to sample data if localStorage is corrupted
-        setNotifications(sampleNotifications);
-      }
-    } else {
-      // Initialize with sample data if no saved notifications
-      setNotifications(sampleNotifications);
-    }
-    
     if (savedSettings) {
       try {
         setSettings(JSON.parse(savedSettings));
@@ -73,53 +69,140 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Save notifications to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-  }, [notifications]);
-
   // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('notificationSettings', JSON.stringify(settings));
   }, [settings]);
 
+  // Set up real-time listener for notifications when user is authenticated
+  useEffect(() => {
+    if (!user || !db) {
+      // Fallback to sample data when not authenticated
+      setNotifications(sampleNotifications);
+      return;
+    }
+
+    const notificationsRef = collection(db, "notifications");
+    
+    // Try the optimized query first, fallback to simpler query if index doesn't exist
+    let q;
+    try {
+      q = query(
+        notificationsRef, 
+        where("recipientId", "==", user.uid), 
+        orderBy("createdAt", "desc")
+      );
+    } catch (error) {
+      console.warn('Composite index not found, using simpler query:', error);
+      // Fallback to query without orderBy if index doesn't exist
+      q = query(
+        notificationsRef, 
+        where("recipientId", "==", user.uid)
+      );
+    }
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const notificationsData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          recipientId: data.recipientId || user.uid // Ensure recipientId exists
+        } as Notification;
+      });
+      
+      // Sort by createdAt if we couldn't use orderBy in the query
+      const sortedData = notificationsData.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setNotifications(sortedData);
+    }, (error) => {
+      console.error('Error listening to notifications:', error);
+      // Fallback to sample data on error
+      setNotifications(sampleNotifications);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const addNotification = (notificationData: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notificationData,
-      id: 'n' + Math.random().toString(36).slice(2),
-      createdAt: new Date().toISOString(),
-      read: false,
-    };
+  const addNotification = async (notificationData: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
+    if (!user) return;
     
-    setNotifications(prev => [newNotification, ...prev]);
+    try {
+      await createNotificationFirebase({
+        ...notificationData,
+        recipientId: user.uid
+      });
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      await markNotificationAsRead(id);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // Fallback to local state update
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      );
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, read: true }))
-    );
+  const markAllAsRead = async () => {
+    if (!user) return;
+    
+    try {
+      await markAllAsReadFirebase(user.uid);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      // Fallback to local state update
+      setNotifications(prev =>
+        prev.map(notification => ({ ...notification, read: true }))
+      );
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteNotificationFirebase(id);
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      // Fallback to local state update
+      setNotifications(prev => prev.filter(notification => notification.id !== id));
+    }
   };
 
   const updateSettings = (newSettings: Partial<NotificationSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
+  const clearAllNotifications = async () => {
+    if (!user) return;
+    
+    try {
+      // Delete all notifications for the user
+      const notificationsRef = collection(db, "notifications");
+      const q = query(notificationsRef, where("recipientId", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      querySnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error('Error clearing all notifications:', error);
+      // Fallback to local state update
+      setNotifications([]);
+    }
   };
 
   return (
