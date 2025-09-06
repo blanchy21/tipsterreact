@@ -43,10 +43,20 @@ try {
       // Suppress Firebase heartbeats warnings
       const originalConsoleWarn = console.warn;
       console.warn = (...args) => {
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('heartbeats')) {
-          return; // Suppress heartbeats warnings
+        if (args[0] && typeof args[0] === 'string' && 
+            (args[0].includes('heartbeats') || args[0].includes('undefined'))) {
+          return; // Suppress heartbeats and undefined warnings
         }
         originalConsoleWarn.apply(console, args);
+      };
+      
+      // Also suppress console.log for heartbeats
+      const originalConsoleLog = console.log;
+      console.log = (...args) => {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('heartbeats')) {
+          return; // Suppress heartbeats logs
+        }
+        originalConsoleLog.apply(console, args);
       };
     }
   } else {

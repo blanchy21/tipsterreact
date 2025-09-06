@@ -32,7 +32,7 @@ const testUsers = [
   {
     displayName: 'Sarah Johnson',
     email: 'sarah.johnson@example.com',
-    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80'),
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=96&h=96&fit=crop&crop=face'),
     bio: 'Basketball expert and former WNBA player. Now providing analysis and insights.',
     handle: '@sarahjohnson',
     specializations: ['Basketball', 'WNBA', 'NBA'],
@@ -155,7 +155,7 @@ const testPosts = [
       id: 'test-user-2',
       name: 'Sarah Johnson',
       handle: '@sarahjohnson',
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80')
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=96&h=96&fit=crop&crop=face')
     },
     sport: 'Basketball',
     title: 'Lakers vs Warriors: Key Matchups',

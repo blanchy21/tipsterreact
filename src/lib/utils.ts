@@ -1,5 +1,3 @@
-import { normalizeImageUrl } from './imageUtils';
-
 // Utility function for time ago
 export function timeAgo(date: string): string {
   const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -46,7 +44,7 @@ export const initialPosts = [
       id: 'user-jordan-lee',
       name: 'Jordan Lee', 
       handle: '@jordlee', 
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256&auto=format&fit=crop') 
+      avatar: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=256&auto=format&fit=crop' 
     },
     sport: 'Basketball',
     title: 'Lakers vs Warriors: LeBron vs Curry Rivalry Continues',
@@ -100,7 +98,7 @@ export const initialPosts = [
       id: 'user-david-kim',
       name: 'David Kim', 
       handle: '@davidk', 
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop') 
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop' 
     },
     sport: 'Basketball',
     title: 'NBA Finals: Celtics vs Heat Game 7 Analysis',
@@ -126,7 +124,7 @@ export const sampleFollowing = [
     id: 'u1', 
     name: 'Mia Park', 
     handle: '@miap', 
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=256&auto=format&fit=crop'), 
+      avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=256&auto=format&fit=crop', 
     winRate: 64, 
     following: true 
   },
@@ -174,7 +172,7 @@ export const sampleNotifications = [
       id: 'u1',
       name: 'John Smith',
       handle: '@johnsmith',
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop')
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=256&auto=format&fit=crop'
     },
     postId: 'p1',
     read: false,
@@ -190,7 +188,7 @@ export const sampleNotifications = [
       id: 'u2',
       name: 'Sarah Johnson',
       handle: '@sarahj',
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop')
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop'
     },
     postId: 'p2',
     read: false,
@@ -206,7 +204,7 @@ export const sampleNotifications = [
       id: 'u3',
       name: 'Mike Wilson',
       handle: '@mikew',
-      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop')
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop'
     },
     read: false,
     createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago

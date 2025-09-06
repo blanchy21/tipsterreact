@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { 
   Star, 
@@ -40,6 +40,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import { useProfile } from '@/lib/contexts/ProfileContext';
 import { useFollowing } from '@/lib/contexts/FollowingContext';
 import { normalizeImageUrl } from '@/lib/imageUtils';
+import { getUserStats } from '@/lib/firebase/firebaseUtils';
 
 interface ProfileStats {
   totalPosts: number;
@@ -79,6 +80,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const { profile, loading: profileLoading } = useProfile();
   const { following, followers } = useFollowing();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userStats, setUserStats] = useState<ProfileStats>({
+    totalPosts: 0,
+    engagementRate: 0,
+    followers: 0,
+    following: 0,
+    totalLikes: 0,
+    totalComments: 0,
+    streak: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   
   // Use real user data or fallback to current user
   const profileUser = profile || (currentUser ? {
@@ -92,6 +103,33 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     followingCount: 0
   } : null);
 
+  // Load user stats when profileUser changes
+  useEffect(() => {
+    const loadUserStats = async () => {
+      if (!profileUser?.id) return;
+      
+      setStatsLoading(true);
+      try {
+        const stats = await getUserStats(profileUser.id);
+        setUserStats({
+          totalPosts: stats.totalPosts,
+          engagementRate: stats.engagementRate,
+          followers: followers.length,
+          following: following.length,
+          totalLikes: stats.totalLikes,
+          totalComments: stats.totalComments,
+          streak: 12 // Keep streak as static for now
+        });
+      } catch (error) {
+        console.error('Error loading user stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    loadUserStats();
+  }, [profileUser?.id, followers.length, following.length]);
+
   if (!profileUser) {
     return (
       <div className="w-full text-gray-100 font-[Inter] bg-gradient-to-br from-slate-900 to-[#2c1376]/70 min-h-screen flex items-center justify-center">
@@ -103,15 +141,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     );
   }
 
-  const stats: ProfileStats = {
-    totalPosts: 1247, // This could be made dynamic later
-    engagementRate: 78, // This could be calculated from real data
-    followers: followers.length,
-    following: following.length,
-    totalLikes: 9720, // This could be made dynamic later
-    totalComments: 2750, // This could be made dynamic later
-    streak: 12 // This could be made dynamic later
-  };
+  // Stats are now loaded dynamically via useEffect
 
   const achievements: Achievement[] = [
     {
@@ -228,7 +258,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-transparent">
                     <div className="bg-white/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-150 border border-white/20">
                       <Camera className="w-3 h-3 text-black" />
-                      <span className="text-sm font-semibold text-black">+{stats.totalPosts}</span>
+                      <span className="text-sm font-semibold text-black">
+                        {statsLoading ? '...' : `+${userStats.totalPosts}`}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -301,15 +333,21 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-6 p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 opacity-0 translate-y-4 blur-sm hover:bg-white/10 transition-all duration-500" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.4s forwards'}}>
                   <div className="text-center hover:scale-110 transition-transform duration-300">
-                    <div className="text-xl font-bold text-white">{stats.totalPosts.toLocaleString()}</div>
+                    <div className="text-xl font-bold text-white">
+                      {statsLoading ? '...' : userStats.totalPosts.toLocaleString()}
+                    </div>
                     <div className="text-xs text-neutral-400">Posts</div>
                   </div>
                   <div className="text-center border-l border-r border-white/10 hover:scale-110 transition-transform duration-300">
-                    <div className="text-xl font-bold text-white">{stats.engagementRate}%</div>
+                    <div className="text-xl font-bold text-white">
+                      {statsLoading ? '...' : `${userStats.engagementRate}%`}
+                    </div>
                     <div className="text-xs text-neutral-400">Engagement</div>
                   </div>
                   <div className="text-center hover:scale-110 transition-transform duration-300">
-                    <div className="text-xl font-bold text-white">{stats.totalComments}</div>
+                    <div className="text-xl font-bold text-white">
+                      {statsLoading ? '...' : userStats.totalComments}
+                    </div>
                     <div className="text-xs text-neutral-400">Comments</div>
                   </div>
                 </div>
@@ -426,7 +464,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 <div className="flex items-center justify-between opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.6s forwards'}}>
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
-                      <Image src={normalizeImageUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80")} alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
+                      <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face" alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-indigo-600 animate-pulse"></div>
                     </div>
                     <div>
@@ -464,7 +502,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     </div>
                     <span className="font-semibold text-emerald-400">Total Likes</span>
                   </div>
-                  <div className="text-3xl font-bold text-white mb-1">{stats.totalLikes.toLocaleString()}</div>
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {statsLoading ? '...' : userStats.totalLikes.toLocaleString()}
+                  </div>
                   <div className="text-sm text-emerald-300">Likes Received</div>
                 </div>
 
@@ -478,22 +518,30 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                       <span className="font-semibold text-blue-400">Comments</span>
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-white mb-1">{stats.totalComments.toLocaleString()}</div>
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {statsLoading ? '...' : userStats.totalComments.toLocaleString()}
+                  </div>
                   <div className="text-sm text-blue-300">Comments Received</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-6 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 2s forwards'}}>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{profileUser.followersCount?.toLocaleString() || stats.followers.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {statsLoading ? '...' : (profileUser.followersCount?.toLocaleString() || userStats.followers.toLocaleString())}
+                  </div>
                   <div className="text-xs text-neutral-400">Followers</div>
                 </div>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{profileUser.followingCount || stats.following}</div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {statsLoading ? '...' : (profileUser.followingCount || userStats.following)}
+                  </div>
                   <div className="text-xs text-neutral-400">Following</div>
                 </div>
                 <div className="text-center p-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 hover:scale-105 transition-all duration-300">
-                  <div className="text-2xl font-bold text-white mb-1">{stats.engagementRate}%</div>
+                  <div className="text-2xl font-bold text-white mb-1">
+                    {statsLoading ? '...' : `${userStats.engagementRate}%`}
+                  </div>
                   <div className="text-xs text-neutral-400">Engagement</div>
                 </div>
               </div>

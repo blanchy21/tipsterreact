@@ -18,7 +18,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { User, Post } from "../types";
+import { User, Post, Comment, CommentFormData } from "../types";
 import { normalizeImageUrl } from "../imageUtils";
 
 // Auth functions
@@ -682,5 +682,243 @@ export const searchUsers = async (query: string, limit: number = 20): Promise<Us
   } catch (error) {
     console.error('Error searching users:', error);
     return [];
+  }
+};
+
+// Comments Management Functions
+export const createComment = async (postId: string, userId: string, commentData: CommentFormData): Promise<Comment | null> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  try {
+    // Get user profile
+    const userProfile = await getUserProfile(userId);
+    if (!userProfile) {
+      throw new Error("User profile not found");
+    }
+
+    const newComment: any = {
+      postId,
+      user: {
+        id: userProfile.id,
+        name: userProfile.name || 'Anonymous',
+        handle: userProfile.handle || `@${(userProfile.name || 'user').toLowerCase().replace(/\s+/g, '')}`,
+        avatar: userProfile.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'
+      },
+      content: commentData.content,
+      createdAt: new Date().toISOString(),
+      likes: 0,
+      likedBy: [],
+      isEdited: false
+    };
+
+    // Only add parentId if it exists
+    if (commentData.parentId) {
+      newComment.parentId = commentData.parentId;
+    }
+
+    const docRef = await addDocument('comments', newComment);
+    const createdComment = { id: docRef.id, ...newComment };
+
+    // Update post comment count
+    await incrementPostCommentCount(postId);
+
+    return createdComment;
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    throw error;
+  }
+};
+
+export const getCommentsByPostId = async (postId: string): Promise<Comment[]> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  try {
+    const comments = await getDocuments('comments');
+    const postComments = comments
+      .filter((comment: any) => comment.postId === postId)
+      .map((comment: any) => ({
+        ...comment,
+        createdAt: comment.createdAt?.toDate ? comment.createdAt.toDate().toISOString() : comment.createdAt,
+        editedAt: comment.editedAt?.toDate ? comment.editedAt.toDate().toISOString() : comment.editedAt
+      }))
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    return postComments;
+  } catch (error) {
+    console.error('Error getting comments:', error);
+    return [];
+  }
+};
+
+export const updateComment = async (commentId: string, content: string): Promise<boolean> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  try {
+    await updateDocument('comments', commentId, {
+      content,
+      isEdited: true,
+      editedAt: new Date()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    return false;
+  }
+};
+
+export const deleteComment = async (commentId: string, postId: string): Promise<boolean> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  try {
+    await deleteDocument('comments', commentId);
+    
+    // Decrement post comment count
+    await decrementPostCommentCount(postId);
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return false;
+  }
+};
+
+export const toggleCommentLike = async (commentId: string, userId: string, isLiked: boolean): Promise<boolean> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    throw new Error("Firebase Firestore not available");
+  }
+
+  try {
+    const commentRef = doc(db, 'comments', commentId);
+    const commentSnap = await getDoc(commentRef);
+    
+    if (commentSnap.exists()) {
+      const commentData = commentSnap.data();
+      const likedBy = commentData.likedBy || [];
+      
+      if (isLiked) {
+        // Add like
+        await updateDocument('comments', commentId, {
+          likes: commentData.likes + 1,
+          likedBy: arrayUnion(userId)
+        });
+      } else {
+        // Remove like
+        await updateDocument('comments', commentId, {
+          likes: Math.max(0, commentData.likes - 1),
+          likedBy: arrayRemove(userId)
+        });
+      }
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error liking comment:', error);
+    return false;
+  }
+};
+
+export const incrementPostCommentCount = async (postId: string): Promise<void> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return;
+  }
+
+  try {
+    const postRef = doc(db, 'posts', postId);
+    const postSnap = await getDoc(postRef);
+    
+    if (postSnap.exists()) {
+      const postData = postSnap.data();
+      await updateDocument('posts', postId, {
+        comments: (postData.comments || 0) + 1
+      });
+    }
+  } catch (error) {
+    console.error('Error incrementing post comment count:', error);
+  }
+};
+
+export const decrementPostCommentCount = async (postId: string): Promise<void> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return;
+  }
+
+  try {
+    const postRef = doc(db, 'posts', postId);
+    const postSnap = await getDoc(postRef);
+    
+    if (postSnap.exists()) {
+      const postData = postSnap.data();
+      await updateDocument('posts', postId, {
+        comments: Math.max(0, (postData.comments || 0) - 1)
+      });
+    }
+  } catch (error) {
+    console.error('Error decrementing post comment count:', error);
+  }
+};
+
+// User Stats Functions
+export const getUserStats = async (userId: string): Promise<{
+  totalPosts: number;
+  totalLikes: number;
+  totalComments: number;
+  engagementRate: number;
+}> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return {
+      totalPosts: 0,
+      totalLikes: 0,
+      totalComments: 0,
+      engagementRate: 0
+    };
+  }
+
+  try {
+    // Get all posts by the user
+    const posts = await getDocuments('posts');
+    const userPosts = posts.filter((post: any) => post.user.id === userId);
+    
+    // Get all comments by the user
+    const comments = await getDocuments('comments');
+    const userComments = comments.filter((comment: any) => comment.user.id === userId);
+    
+    // Calculate totals
+    const totalPosts = userPosts.length;
+    const totalLikes = userPosts.reduce((sum: number, post: any) => sum + (post.likes || 0), 0);
+    const totalComments = userComments.length;
+    
+    // Calculate engagement rate (simplified: likes per post)
+    const engagementRate = totalPosts > 0 ? Math.round((totalLikes / totalPosts) * 100) / 100 : 0;
+    
+    return {
+      totalPosts,
+      totalLikes,
+      totalComments,
+      engagementRate
+    };
+  } catch (error) {
+    console.error('Error getting user stats:', error);
+    return {
+      totalPosts: 0,
+      totalLikes: 0,
+      totalComments: 0,
+      engagementRate: 0
+    };
   }
 };

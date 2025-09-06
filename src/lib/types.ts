@@ -120,3 +120,22 @@ export interface NotificationSettings {
   matchResults: boolean;
   system: boolean;
 }
+
+export interface Comment {
+  id: string;
+  postId: string;
+  user: User;
+  content: string;
+  createdAt: string;
+  likes: number;
+  likedBy: string[]; // Array of user IDs who liked this comment
+  replies?: Comment[]; // For nested replies
+  parentId?: string; // For replies to comments
+  isEdited?: boolean;
+  editedAt?: string;
+}
+
+export interface CommentFormData {
+  content: string;
+  parentId?: string;
+}

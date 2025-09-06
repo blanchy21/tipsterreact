@@ -1,19 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { MoreHorizontal, MessageCircle, Eye, Hash } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Eye, Hash, ChevronDown, ChevronUp } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { timeAgo } from '@/lib/utils';
 import LikeButton from './LikeButton';
 import FollowButton from './FollowButton';
+import CommentsList from './CommentsList';
 
 interface PostCardProps {
   post: Post;
   onLikeChange: (postId: string, newLikes: number, newLikedBy: string[]) => void;
+  onCommentCountChange?: (postId: string, newCount: number) => void;
 }
 
-export default function PostCard({ post, onLikeChange }: PostCardProps) {
+export default function PostCard({ post, onLikeChange, onCommentCountChange }: PostCardProps) {
+  const [showComments, setShowComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(post.comments);
+
+  const handleCommentCountChange = (newCount: number) => {
+    setCommentCount(newCount);
+    onCommentCountChange?.(post.id, newCount);
+  };
+
+  const toggleComments = () => {
+    setShowComments(!showComments);
+  };
+
   return (
     <article className="group rounded-xl bg-white/[0.03] hover:bg-white/[0.05] transition ring-1 ring-white/5 hover:ring-white/10 p-4 md:p-5">
       <div className="flex items-start gap-3">
@@ -69,9 +83,17 @@ export default function PostCard({ post, onLikeChange }: PostCardProps) {
 
           <div className="mt-4 flex items-center gap-4">
             <LikeButton post={post} onLikeChange={onLikeChange} />
-            <button className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition rounded-md px-2 py-1.5 hover:bg-white/5 ring-1 ring-transparent hover:ring-white/10">
+            <button 
+              onClick={toggleComments}
+              className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 transition rounded-md px-2 py-1.5 hover:bg-white/5 ring-1 ring-transparent hover:ring-white/10"
+            >
               <MessageCircle className="w-4 h-4" />
-              <span className="text-sm">{post.comments}</span>
+              <span className="text-sm">{commentCount}</span>
+              {showComments ? (
+                <ChevronUp className="w-3 h-3" />
+              ) : (
+                <ChevronDown className="w-3 h-3" />
+              )}
             </button>
             <div className="inline-flex items-center gap-2 text-slate-400">
               <Eye className="w-4 h-4" />
@@ -83,6 +105,16 @@ export default function PostCard({ post, onLikeChange }: PostCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="mt-4 border-t border-slate-700/50 pt-4">
+          <CommentsList 
+            postId={post.id} 
+            onCommentCountChange={handleCommentCountChange}
+          />
+        </div>
+      )}
     </article>
   );
 }
