@@ -110,12 +110,61 @@ export const unlikePost = async (postId: string, userId: string) => {
   });
 };
 
+// Helper function to ensure user profile exists
+const ensureUserProfileExists = async (userId: string) => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return;
+  }
+
+  const userRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    console.log(`Creating missing user profile for ${userId}`);
+    // Create a minimal user profile
+    await setDoc(userRef, {
+      id: userId,
+      displayName: 'User',
+      email: '',
+      photoURL: '',
+      createdAt: new Date(),
+      followers: [],
+      following: [],
+      followersCount: 0,
+      followingCount: 0,
+      bio: '',
+      favoriteSports: [],
+      isVerified: false
+    });
+    console.log(`Successfully created user profile for ${userId}`);
+  } else {
+    console.log(`User profile already exists for ${userId}`);
+  }
+};
+
+// Export function to check if user profile exists (for debugging)
+export const checkUserProfileExists = async (userId: string): Promise<boolean> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return false;
+  }
+
+  const userRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists();
+};
+
 // Follow functions
 export const followUser = async (followerId: string, followingId: string) => {
   if (!db) {
     console.warn("Firebase Firestore not available");
     throw new Error("Firebase Firestore not available");
   }
+  
+  // Ensure both user profiles exist before attempting follow operation
+  await ensureUserProfileExists(followerId);
+  await ensureUserProfileExists(followingId);
   
   const batch = writeBatch(db);
   
@@ -141,6 +190,10 @@ export const unfollowUser = async (followerId: string, followingId: string) => {
     console.warn("Firebase Firestore not available");
     throw new Error("Firebase Firestore not available");
   }
+  
+  // Ensure both user profiles exist before attempting unfollow operation
+  await ensureUserProfileExists(followerId);
+  await ensureUserProfileExists(followingId);
   
   const batch = writeBatch(db);
   

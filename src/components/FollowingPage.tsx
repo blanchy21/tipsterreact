@@ -16,6 +16,7 @@ import { User } from '@/lib/types';
 import { useFollowing } from '@/lib/contexts/FollowingContext';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { normalizeImageUrl } from '@/lib/imageUtils';
+import { checkUserProfileExists } from '@/lib/firebase/firebaseUtils';
 import FollowButton from './FollowButton';
 
 interface FollowingPageProps {
@@ -81,16 +82,15 @@ const FollowingPage: React.FC<FollowingPageProps> = ({ initialTab = 'following' 
     user, 
     showFollowButton = true 
   }) => (
-    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300 group">
+    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-300 group backdrop-blur-sm">
       <div className="flex items-center gap-4">
         <div className="relative">
           <Image
             src={normalizeImageUrl(user.avatar)}
-            alt={user.name}
+            alt={user.name || 'User'}
             width={48}
             height={48}
             className="rounded-full object-cover"
-            style={{ width: 'auto', height: 'auto' }}
           />
           {user.isVerified && (
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
@@ -166,7 +166,7 @@ const FollowingPage: React.FC<FollowingPageProps> = ({ initialTab = 'following' 
               placeholder="Search users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-neutral-400 focus:outline-none focus:border-blue-500"
+              className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-neutral-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 backdrop-blur-sm"
             />
             {isSearching && (
               <Loader2 className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400 animate-spin" />
@@ -276,7 +276,7 @@ const FollowingPage: React.FC<FollowingPageProps> = ({ initialTab = 'following' 
   };
 
   return (
-    <div className="w-full text-gray-100 font-[Inter] bg-gradient-to-br from-slate-900 to-[#2c1376]/70 min-h-screen">
+    <div className="w-full text-gray-100 font-[Inter] bg-[#0B0F14] min-h-screen">
       <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -294,25 +294,39 @@ const FollowingPage: React.FC<FollowingPageProps> = ({ initialTab = 'following' 
                 <p>Suggestions: {suggestions.length}</p>
                 <p>Loading: {loading ? 'Yes' : 'No'}</p>
               </div>
-              <button
-                onClick={refreshSuggestions}
-                className="mt-2 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-              >
-                Refresh Suggestions
-              </button>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={refreshSuggestions}
+                          className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        >
+                          Refresh Suggestions
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (user?.uid) {
+                              const exists = await checkUserProfileExists(user.uid);
+                              console.log(`Current user profile exists: ${exists}`);
+                              alert(`Current user profile exists: ${exists}`);
+                            }
+                          }}
+                          className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        >
+                          Check Profile
+                        </button>
+                      </div>
             </div>
           )}
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
+        <div className="flex gap-1 mb-6 bg-white/5 rounded-xl p-1 backdrop-blur-sm">
           {tabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                 activeTab === tab.key
-                  ? 'bg-blue-500 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg'
                   : 'text-neutral-400 hover:text-white hover:bg-white/10'
               }`}
             >

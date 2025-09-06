@@ -5,13 +5,14 @@ import {
   followUser,
   unfollowUser 
 } from './firebase/firebaseUtils';
+import { normalizeImageUrl } from './imageUtils';
 
 // Test users data
 const testUsers = [
   {
     displayName: 'Alex Thompson',
     email: 'alex.thompson@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'),
     bio: 'Professional football analyst with 10+ years experience. Specializing in Premier League and Champions League.',
     handle: '@alexthompson',
     specializations: ['Football', 'Premier League', 'Champions League'],
@@ -31,7 +32,7 @@ const testUsers = [
   {
     displayName: 'Sarah Johnson',
     email: 'sarah.johnson@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80'),
     bio: 'Basketball expert and former WNBA player. Now providing analysis and insights.',
     handle: '@sarahjohnson',
     specializations: ['Basketball', 'WNBA', 'NBA'],
@@ -51,7 +52,7 @@ const testUsers = [
   {
     displayName: 'Mike Rodriguez',
     email: 'mike.rodriguez@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=320&q=80'),
     bio: 'Tennis coach and analyst. Former ATP player with deep insights into the game.',
     handle: '@mikerodriguez',
     specializations: ['Tennis', 'ATP', 'WTA'],
@@ -71,7 +72,7 @@ const testUsers = [
   {
     displayName: 'Emma Wilson',
     email: 'emma.wilson@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=320&q=80'),
     bio: 'Cricket analyst and former international player. Expert in all formats of the game.',
     handle: '@emmawilson',
     specializations: ['Cricket', 'Test Cricket', 'T20'],
@@ -91,7 +92,7 @@ const testUsers = [
   {
     displayName: 'David Chen',
     email: 'david.chen@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=320&q=80'),
     bio: 'Golf instructor and course designer. PGA certified with expertise in course strategy.',
     handle: '@davidchen',
     specializations: ['Golf', 'PGA', 'Course Design'],
@@ -111,7 +112,7 @@ const testUsers = [
   {
     displayName: 'Lisa Martinez',
     email: 'lisa.martinez@example.com',
-    photoURL: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=320&q=80',
+    photoURL: normalizeImageUrl('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=320&q=80'),
     bio: 'Horse racing expert and handicapper. 15+ years of experience in thoroughbred racing.',
     handle: '@lisamartinez',
     specializations: ['Horse Racing', 'Thoroughbred', 'Handicapping'],
@@ -137,7 +138,7 @@ const testPosts = [
       id: 'test-user-1',
       name: 'Alex Thompson',
       handle: '@alexthompson',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80')
     },
     sport: 'Football',
     title: 'Arsenal vs Chelsea: Tactical Analysis',
@@ -154,7 +155,7 @@ const testPosts = [
       id: 'test-user-2',
       name: 'Sarah Johnson',
       handle: '@sarahjohnson',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80'
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=320&q=80')
     },
     sport: 'Basketball',
     title: 'Lakers vs Warriors: Key Matchups',

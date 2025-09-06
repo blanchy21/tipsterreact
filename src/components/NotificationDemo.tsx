@@ -3,6 +3,7 @@
 import React from 'react';
 import { useNotifications } from '@/lib/contexts/NotificationsContext';
 import { User } from '@/lib/types';
+import { normalizeImageUrl } from '@/lib/imageUtils';
 
 interface NotificationDemoProps {
   className?: string;
@@ -22,7 +23,7 @@ export default function NotificationDemo({ className = '' }: NotificationDemoPro
       id: 'demo2',
       name: 'Lisa Chen',
       handle: '@lisachen',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop'
+      avatar: normalizeImageUrl('https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=256&auto=format&fit=crop')
     },
     {
       id: 'demo3',

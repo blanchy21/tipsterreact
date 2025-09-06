@@ -39,6 +39,7 @@ import ProfileEditModal from './ProfileEditModal';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useProfile } from '@/lib/contexts/ProfileContext';
 import { useFollowing } from '@/lib/contexts/FollowingContext';
+import { normalizeImageUrl } from '@/lib/imageUtils';
 
 interface ProfileStats {
   totalPosts: number;
@@ -84,7 +85,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     id: currentUser.uid,
     name: currentUser.displayName || 'User',
     handle: `@${currentUser.email?.split('@')[0] || 'user'}`,
-    avatar: currentUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80',
+    avatar: normalizeImageUrl(currentUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80'),
     followers: [],
     following: [],
     followersCount: 0,
@@ -200,9 +201,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                   />
                 ) : (
                   <Image 
-                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" 
+                    src={normalizeImageUrl("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80")} 
                     alt="football stadium" 
                     fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
                 )}
@@ -216,9 +218,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                     />
                   ) : (
                     <Image 
-                      src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80" 
+                      src={normalizeImageUrl("https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80")} 
                       alt="basketball court" 
                       fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       className="object-cover transition-transform duration-700 group-hover:scale-110" 
                     />
                   )}
@@ -233,12 +236,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               </div>
               <div className="relative pt-16 pr-8 pb-8 pl-8 backdrop-blur-2xl">
                 <Image 
-                  src={profileUser.avatar} 
+                  src={normalizeImageUrl(profileUser.avatar)} 
                   alt="profile" 
                   width={96}
                   height={96}
                   className="absolute -top-12 left-8 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2 object-cover border-white/20 border-4 rounded-3xl shadow-2xl"
-                  style={{ width: 'auto', height: 'auto' }}
                 />
                 {profileUser.isVerified && (
                   <span className="absolute -top-6 left-28 rounded-full p-2 bg-emerald-400 shadow-lg ring-4 ring-emerald-400/20 transition-all duration-500 group-hover:ring-8 group-hover:ring-emerald-400/40" aria-label="verified">
@@ -424,7 +426,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 <div className="flex items-center justify-between opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.6s forwards'}}>
                   <div className="flex items-center gap-4">
                     <div className="relative group/avatar">
-                      <Image src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80" alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
+                      <Image src={normalizeImageUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80")} alt="profile" width={48} height={48} className="rounded-full border-2 border-white/30 group-hover/avatar:border-4 group-hover/avatar:border-white/50 group-hover/avatar:scale-110 transition-all duration-300 object-cover" />
                       <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-indigo-600 animate-pulse"></div>
                     </div>
                     <div>

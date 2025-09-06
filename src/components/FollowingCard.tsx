@@ -23,11 +23,10 @@ export default function FollowingCard({ list, onToggle }: FollowingCardProps) {
           <div key={user.id} className="px-4 py-3 flex items-center gap-3">
             <Image 
               src={normalizeImageUrl(user.avatar)} 
-              alt={user.name} 
+              alt={user.name || 'User'} 
               width={36}
               height={36}
               className="h-9 w-9 rounded-full object-cover ring-1 ring-white/10 flex-shrink-0" 
-              style={{ width: 'auto', height: 'auto' }}
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">

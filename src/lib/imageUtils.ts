@@ -8,7 +8,7 @@
  * @returns Normalized URL
  */
 export const normalizeImageUrl = (url: string): string => {
-  if (!url) return '/default-avatar.png';
+  if (!url || url === '') return getDefaultAvatar();
   
   // If it's an Unsplash URL, normalize it
   if (url.includes('images.unsplash.com')) {
