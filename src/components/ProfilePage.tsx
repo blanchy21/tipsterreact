@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { 
   Star, 
@@ -30,10 +30,15 @@ import {
   CalendarPlus,
   ArrowRight,
   ExternalLink,
-  UserPlus
+  UserPlus,
+  Edit3,
+  Settings
 } from 'lucide-react';
 import FollowButton from './FollowButton';
+import ProfileEditModal from './ProfileEditModal';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useProfile } from '@/lib/contexts/ProfileContext';
+import { useFollowing } from '@/lib/contexts/FollowingContext';
 
 interface ProfileStats {
   totalPosts: number;
@@ -64,29 +69,47 @@ interface RecentPost {
   date: string;
 }
 
-const ProfilePage: React.FC = () => {
+interface ProfilePageProps {
+  onNavigate?: (page: string) => void;
+}
+
+const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const { user: currentUser } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
+  const { following, followers } = useFollowing();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
-  // Mock profile user data - in a real app, this would come from props or API
-  const profileUser = {
-    id: 'profile-user-123',
-    name: 'Alex Thompson',
-    handle: '@alexthompson',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80',
-    followers: ['user1', 'user2', 'user3'],
-    following: ['user4', 'user5'],
-    followersCount: 2840,
-    followingCount: 156
-  };
+  // Use real user data or fallback to current user
+  const profileUser = profile || (currentUser ? {
+    id: currentUser.uid,
+    name: currentUser.displayName || 'User',
+    handle: `@${currentUser.email?.split('@')[0] || 'user'}`,
+    avatar: currentUser.photoURL || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80',
+    followers: [],
+    following: [],
+    followersCount: 0,
+    followingCount: 0
+  } : null);
+
+  if (!profileUser) {
+    return (
+      <div className="w-full text-gray-100 font-[Inter] bg-gradient-to-br from-slate-900 to-[#2c1376]/70 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-neutral-400">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats: ProfileStats = {
-    totalPosts: 1247,
-    engagementRate: 78,
-    followers: profileUser.followersCount || 2840,
-    following: profileUser.followingCount || 156,
-    totalLikes: 9720,
-    totalComments: 2750,
-    streak: 12
+    totalPosts: 1247, // This could be made dynamic later
+    engagementRate: 78, // This could be calculated from real data
+    followers: followers.length,
+    following: following.length,
+    totalLikes: 9720, // This could be made dynamic later
+    totalComments: 2750, // This could be made dynamic later
+    streak: 12 // This could be made dynamic later
   };
 
   const achievements: Achievement[] = [
@@ -168,19 +191,37 @@ const ProfilePage: React.FC = () => {
             {/* PROFILE */}
             <article className="rounded-3xl shadow-2xl overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 hover:border-white/20 transition-all duration-500 group hover:scale-[1.02] hover:shadow-3xl">
               <div className="grid grid-cols-2 h-48 relative overflow-hidden">
-                <Image 
-                  src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" 
-                  alt="football stadium" 
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-110" 
-                />
-                <div className="relative overflow-hidden">
+                {profileUser.coverPhoto ? (
                   <Image 
-                    src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80" 
-                    alt="basketball court" 
+                    src={profileUser.coverPhoto} 
+                    alt="cover photo" 
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110" 
                   />
+                ) : (
+                  <Image 
+                    src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" 
+                    alt="football stadium" 
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                )}
+                <div className="relative overflow-hidden">
+                  {profileUser.profilePhotos && profileUser.profilePhotos.length > 0 ? (
+                    <Image 
+                      src={profileUser.profilePhotos[0]} 
+                      alt="profile gallery" 
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                    />
+                  ) : (
+                    <Image 
+                      src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80" 
+                      alt="basketball court" 
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                    />
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/60 to-transparent">
                     <div className="bg-white/90 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-2 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-150 border border-white/20">
                       <Camera className="w-3 h-3 text-black" />
@@ -192,45 +233,67 @@ const ProfilePage: React.FC = () => {
               </div>
               <div className="relative pt-16 pr-8 pb-8 pl-8 backdrop-blur-2xl">
                 <Image 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=320&q=80" 
+                  src={profileUser.avatar} 
                   alt="profile" 
                   width={96}
                   height={96}
                   className="absolute -top-12 left-8 transition-transform duration-500 group-hover:scale-105 group-hover:rotate-2 object-cover border-white/20 border-4 rounded-3xl shadow-2xl"
+                  style={{ width: 'auto', height: 'auto' }}
                 />
-                <span className="absolute -top-6 left-28 rounded-full p-2 bg-emerald-400 shadow-lg ring-4 ring-emerald-400/20 transition-all duration-500 group-hover:ring-8 group-hover:ring-emerald-400/40" aria-label="verified">
-                  <Check className="w-3 h-3 text-black transition-transform duration-300 group-hover:scale-125" style={{strokeWidth: 2.5}} />
-                </span>
+                {profileUser.isVerified && (
+                  <span className="absolute -top-6 left-28 rounded-full p-2 bg-emerald-400 shadow-lg ring-4 ring-emerald-400/20 transition-all duration-500 group-hover:ring-8 group-hover:ring-emerald-400/40" aria-label="verified">
+                    <Check className="w-3 h-3 text-black transition-transform duration-300 group-hover:scale-125" style={{strokeWidth: 2.5}} />
+                  </span>
+                )}
                 <div className="absolute -top-6 right-8 flex space-x-3 opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 delay-200">
-                  <a href="#" aria-label="facebook" className="text-neutral-300 hover:text-blue-400 transition-all duration-300 p-2 rounded-xl hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 hover:scale-110 backdrop-blur-sm">
-                    <Facebook className="w-4 h-4" />
-                  </a>
-                  <a href="#" aria-label="twitter" className="text-neutral-300 hover:text-sky-400 transition-all duration-300 p-2 rounded-xl hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20 hover:scale-110 backdrop-blur-sm">
-                    <Twitter className="w-4 h-4" />
-                  </a>
-                  <a href="#" aria-label="instagram" className="text-neutral-300 hover:text-pink-400 transition-all duration-300 p-2 rounded-xl hover:bg-pink-500/10 border border-transparent hover:border-pink-500/20 hover:scale-110 backdrop-blur-sm">
-                    <Instagram className="w-4 h-4" />
-                  </a>
+                  {profileUser.socialMedia?.facebook && (
+                    <a href={`https://facebook.com/${profileUser.socialMedia.facebook}`} target="_blank" rel="noopener noreferrer" aria-label="facebook" className="text-neutral-300 hover:text-blue-400 transition-all duration-300 p-2 rounded-xl hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 hover:scale-110 backdrop-blur-sm">
+                      <Facebook className="w-4 h-4" />
+                    </a>
+                  )}
+                  {profileUser.socialMedia?.twitter && (
+                    <a href={`https://twitter.com/${profileUser.socialMedia.twitter}`} target="_blank" rel="noopener noreferrer" aria-label="twitter" className="text-neutral-300 hover:text-sky-400 transition-all duration-300 p-2 rounded-xl hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20 hover:scale-110 backdrop-blur-sm">
+                      <Twitter className="w-4 h-4" />
+                    </a>
+                  )}
+                  {profileUser.socialMedia?.instagram && (
+                    <a href={`https://instagram.com/${profileUser.socialMedia.instagram}`} target="_blank" rel="noopener noreferrer" aria-label="instagram" className="text-neutral-300 hover:text-pink-400 transition-all duration-300 p-2 rounded-xl hover:bg-pink-500/10 border border-transparent hover:border-pink-500/20 hover:scale-110 backdrop-blur-sm">
+                      <Instagram className="w-4 h-4" />
+                    </a>
+                  )}
+                  {currentUser?.uid === profileUser.id && (
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="text-neutral-300 hover:text-blue-400 transition-all duration-300 p-2 rounded-xl hover:bg-blue-500/10 border border-transparent hover:border-blue-500/20 hover:scale-110 backdrop-blur-sm"
+                      aria-label="edit profile"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight mb-2 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1s forwards'}}>
-                  Alex Thompson
+                  {profileUser.name}
                 </h2>
                 <p className="text-neutral-400 text-sm mb-4 flex items-center gap-2 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.1s forwards'}}>
                   <Calendar className="w-4 h-4" />
-                  Member since 2020 • 4+ Years of Excellence
+                  {profileUser.handle} • {profileUser.memberSince ? `Member since ${new Date(profileUser.memberSince).getFullYear()}` : 'New Member'}
                 </p>
                 <div className="flex gap-3 mb-4 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.2s forwards'}}>
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg flex items-center gap-1.5 hover:shadow-indigo-500/25 hover:scale-105 transition-all duration-300 backdrop-blur-sm">
-                    <Zap className="w-3 h-3" />
-                    FOOTBALL
-                  </span>
-                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-neutral-300 border border-white/20 flex items-center gap-1.5 hover:bg-white/20 hover:scale-105 transition-all duration-300">
-                    <Wind className="w-3 h-3" />
-                    BASKETBALL
-                  </span>
+                  {profileUser.specializations?.slice(0, 2).map((sport, index) => (
+                    <span key={sport} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg flex items-center gap-1.5 hover:shadow-indigo-500/25 hover:scale-105 transition-all duration-300 backdrop-blur-sm">
+                      <Zap className="w-3 h-3" />
+                      {sport.toUpperCase()}
+                    </span>
+                  ))}
+                  {(!profileUser.specializations || profileUser.specializations.length === 0) && (
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-neutral-300 border border-white/20 flex items-center gap-1.5 hover:bg-white/20 hover:scale-105 transition-all duration-300">
+                      <Wind className="w-3 h-3" />
+                      SPORTS ANALYST
+                    </span>
+                  )}
                 </div>
                 <p className="text-neutral-300 leading-relaxed mb-6 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.3s forwards'}}>
-                  Professional sports analyst with a passion for data-driven insights and helping others understand the beautiful game through expert analysis.
+                  {profileUser.bio || 'Professional sports analyst with a passion for data-driven insights and helping others understand the beautiful game through expert analysis.'}
                 </p>
                 
                 {/* Stats */}
@@ -258,9 +321,13 @@ const ProfilePage: React.FC = () => {
                   <span className="text-neutral-400">1,247 reviews</span>
                 </div>
                 <div className="flex items-center text-neutral-400 mb-8 space-x-2 opacity-0 translate-y-4 blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 1.6s forwards'}}>
-                  <MapPin className="w-4 h-4" />
-                  <span>London, UK</span>
-                  <span className="text-neutral-600">•</span>
+                  {profileUser.location && (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      <span>{profileUser.location}</span>
+                      <span className="text-neutral-600">•</span>
+                    </>
+                  )}
                   <div className="flex items-center gap-1 text-emerald-400">
                     <Clock className="w-3 h-3 animate-pulse" />
                     <span className="text-xs">Online Now</span>
@@ -441,7 +508,7 @@ const ProfilePage: React.FC = () => {
               </h3>
               
               <div className="space-y-4">
-                {['Football', 'Basketball', 'Tennis', 'Cricket', 'Horse Racing'].map((sport, index) => (
+                {(profileUser.specializations || ['Sports Analysis']).map((sport, index) => (
                   <div key={sport} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: `fadeInSlideLeft 0.6s ease-out ${2.7 + index * 0.1}s forwards`}}>
                     <div className="relative">
                       <div className="w-16 h-16 group-hover:border-4 group-hover:border-emerald-400/50 group-hover:scale-110 transition-all duration-300 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-white/20 border-2 rounded-full flex items-center justify-center">
@@ -469,35 +536,65 @@ const ProfilePage: React.FC = () => {
               </h3>
               
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.5s forwards'}}>
-                  <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                    <Phone className="w-4 h-4" />
+                {profileUser.website && (
+                  <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.5s forwards'}}>
+                    <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <a href={profileUser.website} target="_blank" rel="noopener noreferrer" className="font-medium text-white hover:text-purple-400 transition-colors">
+                        {profileUser.website}
+                      </a>
+                      <div className="text-xs text-neutral-400">Personal Website</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium text-white">+44 20 7946 0958</div>
-                    <div className="text-xs text-neutral-400">Mon-Fri 9AM-6PM</div>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.6s forwards'}}>
-                  <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                    <Mail className="w-4 h-4" />
+                {profileUser.location && (
+                  <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.6s forwards'}}>
+                    <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-white">{profileUser.location}</div>
+                      <div className="text-xs text-neutral-400">Location</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium text-white">alex@sportsanalyst.com</div>
-                    <div className="text-xs text-neutral-400">Quick response guaranteed</div>
-                  </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.7s forwards'}}>
-                  <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-white">London, UK</div>
-                    <div className="text-xs text-neutral-400">Available for consultations</div>
-                  </div>
-                </div>
+                {currentUser?.uid === profileUser.id && (
+                  <>
+                    <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.7s forwards'}}>
+                      <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                        <Settings className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <button 
+                          onClick={() => setIsEditModalOpen(true)}
+                          className="font-medium text-white hover:text-blue-400 transition-colors"
+                        >
+                          Edit Profile
+                        </button>
+                        <div className="text-xs text-neutral-400">Manage your profile settings</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all duration-300 group opacity-0 translate-x-8 blur-sm hover:scale-105 backdrop-blur-md" style={{animation: 'fadeInSlideLeft 0.6s ease-out 3.8s forwards'}}>
+                      <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm">
+                        <Settings className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <button 
+                          onClick={() => onNavigate?.('admin')}
+                          className="font-medium text-white hover:text-purple-400 transition-colors"
+                        >
+                          Admin Panel
+                        </button>
+                        <div className="text-xs text-neutral-400">Populate test data for development</div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <button className="w-full mt-6 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-3 rounded-2xl hover:from-cyan-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 group shadow-lg hover:shadow-cyan-500/25 opacity-0 translate-y-4 blur-sm backdrop-blur-sm" style={{animation: 'fadeInSlideUp 0.8s ease-out 3.8s forwards'}}>
@@ -560,6 +657,12 @@ const ProfilePage: React.FC = () => {
           }
         }
       `}</style>
+      
+      {/* Profile Edit Modal */}
+      <ProfileEditModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+      />
     </div>
   );
 };

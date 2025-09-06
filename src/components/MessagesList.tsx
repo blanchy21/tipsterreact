@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Conversation, User } from '@/lib/types';
 import { Search, MoreVertical, Plus, MessageCircle } from 'lucide-react';
 
@@ -102,9 +103,11 @@ const MessagesList: React.FC<MessagesListProps> = ({
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <div className="relative">
-                      <img
+                      <Image
                         src={otherParticipant.avatar}
                         alt={otherParticipant.name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
                       />
                       {conversation.unreadCount > 0 && (

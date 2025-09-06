@@ -7,6 +7,32 @@ export interface User {
   following?: string[]; // Array of user IDs this user follows
   followersCount?: number;
   followingCount?: number;
+  // Extended profile fields
+  bio?: string;
+  location?: string;
+  website?: string;
+  socialMedia?: {
+    twitter?: string;
+    instagram?: string;
+    facebook?: string;
+    linkedin?: string;
+  };
+  profilePhotos?: string[]; // Array of additional profile photos
+  coverPhoto?: string;
+  specializations?: string[]; // Sports the user specializes in
+  memberSince?: string; // Date when user joined
+  isVerified?: boolean;
+  privacy?: {
+    showEmail: boolean;
+    showPhone: boolean;
+    showLocation: boolean;
+    showSocialMedia: boolean;
+  };
+  preferences?: {
+    notifications: NotificationSettings;
+    theme: 'light' | 'dark' | 'auto';
+    language: string;
+  };
 }
 
 export interface Post {

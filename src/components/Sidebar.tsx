@@ -11,7 +11,9 @@ import {
   Star, 
   PlusCircle,
   ExternalLink,
-  LogOut
+  LogOut,
+  Users,
+  Settings
 } from 'lucide-react';
 import Logo from './Logo';
 import SidebarItem from './SidebarItem';
@@ -35,10 +37,12 @@ const items: SidebarItemType[] = [
   { icon: Home, label: 'Home', key: 'home' },
   { icon: Bell, label: 'Notifications', key: 'notifications' },
   { icon: Star, label: 'Top Articles', key: 'top-articles' },
+  { icon: Users, label: 'People', key: 'following' },
   { icon: MessageCircle, label: 'Chat', key: 'chat' },
   { icon: Mail, label: 'Messages', key: 'messages' },
   { icon: User, label: 'Profile', key: 'profile' },
   { icon: Trophy, label: 'Sport', key: 'top' },
+  { icon: Settings, label: 'Admin', key: 'admin' },
 ];
 
 export default function Sidebar({ selected, onSelect, onOpenPost, isLoaded, selectedSport, onSportSelect, onShowLandingPage, onShowAuthModal }: SidebarProps) {

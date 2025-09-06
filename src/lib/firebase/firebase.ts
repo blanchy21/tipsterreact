@@ -37,6 +37,18 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
+    
+    // Reduce Firebase console warnings in development
+    if (process.env.NODE_ENV === 'development') {
+      // Suppress Firebase heartbeats warnings
+      const originalConsoleWarn = console.warn;
+      console.warn = (...args) => {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('heartbeats')) {
+          return; // Suppress heartbeats warnings
+        }
+        originalConsoleWarn.apply(console, args);
+      };
+    }
   } else {
     console.warn("Firebase configuration not found. Authentication features will be disabled.");
     // Create mock objects to prevent errors

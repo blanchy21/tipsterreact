@@ -13,17 +13,21 @@ import ProfilePage from './ProfilePage';
 import MessagesPage from './MessagesPage';
 import ChatPage from './ChatPage';
 import NotificationsPage from './NotificationsPage';
+import FollowingPage from './FollowingPage';
+import AdminPage from './AdminPage';
 import LandingPage from './LandingPage';
 import AuthModal from './AuthModal';
 import { NotificationsProvider } from '@/lib/contexts/NotificationsContext';
 import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { ProfileProvider } from '@/lib/contexts/ProfileContext';
+import { FollowingProvider } from '@/lib/contexts/FollowingContext';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 function AppContent() {
   const { user, loading } = useAuth();
   const [selected, setSelected] = useState('home');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [following, setFollowing] = useState<FollowingUser[]>(sampleFollowing);
+  // Following data is now managed by FollowingContext
   const [showPost, setShowPost] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,6 +50,20 @@ function AppContent() {
     }, 50);
     return () => clearTimeout(timer);
   }, [user, loading]);
+
+  // Handle URL hash navigation for admin panel
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#admin') {
+        setSelected('admin');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check initial hash
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Load posts from Firestore
   useEffect(() => {
@@ -136,13 +154,7 @@ function AppContent() {
     }
   };
 
-  const toggleFollow = (id: string) => {
-    setFollowing((prev: FollowingUser[]) => 
-      prev.map((user: FollowingUser) => 
-        user.id === id ? { ...user, following: !user.following } : user
-      )
-    );
-  };
+  // Following functionality is now handled by FollowingContext
 
   const handleSportSelect = (sport: string) => {
     setSelectedSport(sport);
@@ -262,7 +274,7 @@ function AppContent() {
 
           {selected === 'profile' ? (
             <div className="flex-1 overflow-y-auto">
-              <ProfilePage />
+              <ProfilePage onNavigate={setSelected} />
             </div>
           ) : selected === 'messages' ? (
             <div className="flex-1">
@@ -275,6 +287,14 @@ function AppContent() {
           ) : selected === 'notifications' ? (
             <div className="flex-1">
               <NotificationsPage />
+            </div>
+          ) : selected === 'following' ? (
+            <div className="flex-1">
+              <FollowingPage />
+            </div>
+          ) : selected === 'admin' ? (
+            <div className="flex-1">
+              <AdminPage />
             </div>
           ) : (
             <>
@@ -290,8 +310,6 @@ function AppContent() {
 
               <RightSidebar
                 fixtures={sampleFixtures}
-                following={following}
-                onToggleFollow={toggleFollow}
                 posts={posts}
                 isLoaded={isLoaded}
               />
@@ -319,7 +337,11 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ProfileProvider>
+        <FollowingProvider>
+          <AppContent />
+        </FollowingProvider>
+      </ProfileProvider>
     </AuthProvider>
   );
 }

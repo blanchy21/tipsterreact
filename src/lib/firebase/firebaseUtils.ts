@@ -15,9 +15,11 @@ import {
   arrayRemove,
   writeBatch,
   getDoc,
+  setDoc,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { User, Post } from "../types";
+import { normalizeImageUrl } from "../imageUtils";
 
 // Auth functions
 export const logoutUser = () => {
@@ -272,41 +274,31 @@ export const createUserProfile = async (user: any, additionalData: any = {}) => 
     const createdAt = new Date();
     
     try {
-      await addDocument('users', {
+      // Use setDoc to create with specific document ID (user.uid)
+      await setDoc(userRef, {
+        id: user.uid,
         displayName,
         email,
         photoURL,
         createdAt,
+        followers: [],
+        following: [],
+        followersCount: 0,
+        followingCount: 0,
         ...additionalData
       });
+      console.log(`Created user profile for ${displayName} with ID: ${user.uid}`);
     } catch (error) {
       console.error('Error creating user profile:', error);
       throw error;
     }
+  } else {
+    console.log(`User profile already exists for ${user.uid}`);
   }
 
   return userRef;
 };
 
-export const getUserProfile = async (userId: string) => {
-  if (!db) {
-    console.warn("Firebase Firestore not available");
-    return null;
-  }
-
-  try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-    
-    if (userSnap.exists()) {
-      return { id: userSnap.id, ...userSnap.data() };
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting user profile:', error);
-    return null;
-  }
-};
 
 // Posts Management
 export const createPost = async (postData: Omit<Post, 'id' | 'createdAt' | 'likes' | 'comments' | 'views' | 'likedBy'>) => {
@@ -409,5 +401,233 @@ export const incrementPostViews = async (postId: string) => {
     }
   } catch (error) {
     console.error('Error incrementing post views:', error);
+  }
+};
+
+// Profile Management Functions
+export const getUserProfile = async (userId: string): Promise<User | null> => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+      return { id: userSnap.id, ...userSnap.data() } as User;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+};
+
+export const updateUserProfile = async (userId: string, profileData: Partial<User>): Promise<boolean> => {
+  try {
+    await updateDocument('users', userId, {
+      ...profileData,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return false;
+  }
+};
+
+export const uploadProfileImage = async (userId: string, file: File, type: 'avatar' | 'cover' | 'gallery'): Promise<string | null> => {
+  try {
+    const fileExtension = file.name.split('.').pop();
+    const fileName = `${type}_${userId}_${Date.now()}.${fileExtension}`;
+    const storageRef = ref(storage, `profiles/${userId}/${fileName}`);
+    
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading profile image:', error);
+    return null;
+  }
+};
+
+export const deleteProfileImage = async (imageUrl: string): Promise<boolean> => {
+  try {
+    const imageRef = ref(storage, imageUrl);
+    await deleteObject(imageRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting profile image:', error);
+    return false;
+  }
+};
+
+export const updateUserAvatar = async (userId: string, avatarUrl: string): Promise<boolean> => {
+  try {
+    await updateUserProfile(userId, { avatar: avatarUrl });
+    return true;
+  } catch (error) {
+    console.error('Error updating user avatar:', error);
+    return false;
+  }
+};
+
+export const updateUserCoverPhoto = async (userId: string, coverPhotoUrl: string): Promise<boolean> => {
+  try {
+    await updateUserProfile(userId, { coverPhoto: coverPhotoUrl });
+    return true;
+  } catch (error) {
+    console.error('Error updating user cover photo:', error);
+    return false;
+  }
+};
+
+export const addProfilePhoto = async (userId: string, photoUrl: string): Promise<boolean> => {
+  try {
+    const userProfile = await getUserProfile(userId);
+    if (userProfile) {
+      const currentPhotos = userProfile.profilePhotos || [];
+      const updatedPhotos = [...currentPhotos, photoUrl];
+      await updateUserProfile(userId, { profilePhotos: updatedPhotos });
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error adding profile photo:', error);
+    return false;
+  }
+};
+
+export const removeProfilePhoto = async (userId: string, photoUrl: string): Promise<boolean> => {
+  try {
+    const userProfile = await getUserProfile(userId);
+    if (userProfile) {
+      const currentPhotos = userProfile.profilePhotos || [];
+      const updatedPhotos = currentPhotos.filter(url => url !== photoUrl);
+      await updateUserProfile(userId, { profilePhotos: updatedPhotos });
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error removing profile photo:', error);
+    return false;
+  }
+};
+
+// Following System Functions
+export const getFollowingUsers = async (userId: string): Promise<User[]> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  try {
+    const following = await getUserFollowing(userId);
+    return following;
+  } catch (error) {
+    console.error('Error getting following users:', error);
+    return [];
+  }
+};
+
+export const getFollowers = async (userId: string): Promise<User[]> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  try {
+    const followers = await getUserFollowers(userId);
+    return followers;
+  } catch (error) {
+    console.error('Error getting followers:', error);
+    return [];
+  }
+};
+
+export const getFollowSuggestions = async (userId: string, limit: number = 10): Promise<User[]> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  try {
+    // Get all users from Firestore
+    const allUsers = await getDocuments('users');
+    
+    // Get current user's following list
+    const currentUser = await getUserProfile(userId);
+    const followingIds = currentUser?.following || [];
+    
+    // Filter out current user and already followed users
+    const suggestions = allUsers
+      .filter((user: any) => {
+        // Skip if it's the current user
+        if (user.id === userId) return false;
+        
+        // Skip if already following
+        if (followingIds.includes(user.id)) return false;
+        
+        // Skip if user is marked as deleted
+        if (user.deleted) return false;
+        
+        return true;
+      })
+      .slice(0, limit)
+      .map((user: any) => ({
+        id: user.id,
+        name: user.displayName || user.name || 'Anonymous',
+        handle: user.handle || `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
+        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'),
+        bio: user.bio || '',
+        specializations: user.specializations || [],
+        followersCount: user.followersCount || 0,
+        followingCount: user.followingCount || 0,
+        isVerified: user.isVerified || false
+      }));
+
+    console.log(`Found ${suggestions.length} suggestions for user ${userId}`);
+    return suggestions;
+  } catch (error) {
+    console.error('Error getting follow suggestions:', error);
+    return [];
+  }
+};
+
+export const searchUsers = async (query: string, limit: number = 20): Promise<User[]> => {
+  if (!db) {
+    console.warn("Firebase Firestore not available");
+    return [];
+  }
+
+  try {
+    const allUsers = await getDocuments('users');
+    const searchQuery = query.toLowerCase();
+    
+    const results = allUsers
+      .filter((user: any) => {
+        const name = (user.displayName || user.name || '').toLowerCase();
+        const handle = (user.handle || '').toLowerCase();
+        const bio = (user.bio || '').toLowerCase();
+        
+        return name.includes(searchQuery) || 
+               handle.includes(searchQuery) || 
+               bio.includes(searchQuery);
+      })
+      .slice(0, limit)
+      .map((user: any) => ({
+        id: user.id,
+        name: user.displayName || user.name || 'Anonymous',
+        handle: user.handle || `@${user.displayName?.toLowerCase().replace(/\s+/g, '') || 'user'}`,
+        avatar: normalizeImageUrl(user.photoURL || user.avatar || 'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?q=80&w=256&auto=format&fit=crop'),
+        bio: user.bio || '',
+        specializations: user.specializations || [],
+        followersCount: user.followersCount || 0,
+        followingCount: user.followingCount || 0,
+        isVerified: user.isVerified || false
+      }));
+
+    return results;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return [];
   }
 };
